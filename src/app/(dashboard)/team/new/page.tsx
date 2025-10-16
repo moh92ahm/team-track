@@ -72,7 +72,15 @@ export default async function NewStaffPage() {
       personalPhone: String(formData.get('personalPhone') || ''),
       workEmail: String(formData.get('workEmail') || ''),
       joinedAt: String(formData.get('joinedAt') || new Date().toISOString()),
+      employmentType: String(formData.get('employmentType') || 'other'),
+      nationality: String(formData.get('nationality') || ''),
+      identificationNumber: String(formData.get('identificationNumber') || ''),
+      address: String(formData.get('address') || ''),
     }
+
+    // Optional date fields: only include when provided (avoid sending empty strings)
+    const workPermitExpiry = String(formData.get('workPermitExpiry') || '')
+    if (workPermitExpiry) staffData.workPermitExpiry = workPermitExpiry
 
     if (jobTitle) staffData.jobTitle = jobTitle
     if (workPhone) staffData.workPhone = workPhone
@@ -97,10 +105,13 @@ export default async function NewStaffPage() {
   return (
     <>
       <StaffForm
-      mode="create"
-      formAction={handleCreateStaff}
-      departments={departmentsResult.docs.map((dept) => ({ value: String(dept.id), label: dept.name }))}
-      roles={rolesResult.docs.map((role) => ({ value: String(role.id), label: role.name }))}
+        mode="create"
+        formAction={handleCreateStaff}
+        departments={departmentsResult.docs.map((dept) => ({
+          value: String(dept.id),
+          label: dept.name,
+        }))}
+        roles={rolesResult.docs.map((role) => ({ value: String(role.id), label: role.name }))}
       />
     </>
   )

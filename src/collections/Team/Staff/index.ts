@@ -67,28 +67,40 @@ export const Staff: CollectionConfig = {
       unique: true,
     },
     {
-      name: 'workStatus',
+      name: 'employmentType',
       type: 'select',
       options: [
-        {
-          label: 'Insurance',
-          value: 'insurance',
-        },
-        {
-          label: 'Work Permit',
-          value: 'workPermit',
-        },
-        {
-          label: 'Retired',
-          value: 'retired',
-        },
-        {
-          label: 'None',
-          value: 'none',
-        }
+       {
+        label: 'Citizen', value: 'citizen'
+       },
+       {
+        label: 'Work Permit', value: 'workPermit'
+       },
+       {
+        label: 'Residence Permit', value: 'residencePermit'
+       },
+       {
+         label: 'Other', value: 'other'
+       },
       ],
-      defaultValue: 'none',
+      defaultValue: 'other',
       required: true,
+    },
+    {
+      name: 'nationality',
+      type: 'text',
+    },
+    {
+      name: 'identificationNumber',
+      type: 'text',
+    },
+    {
+      name: 'workPermitExpiry',
+      type: 'date',
+    },
+    {
+      name: 'address',
+      type: 'textarea',
     },
     {
       name: 'documents',

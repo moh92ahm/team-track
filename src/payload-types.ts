@@ -151,10 +151,10 @@ export interface User {
  */
 export interface Inventory {
   id: number;
-  itemType: string;
-  holder?: (number | null) | Staff;
+  itemType: 'laptop' | 'phone' | 'accessory' | 'other';
   model: string;
   serialNumber: string;
+  holder?: (number | null) | Staff;
   status: 'inUse' | 'inStock' | 'needsRepair' | 'underRepair';
   purchaseDate?: string | null;
   warrantyExpiry?: string | null;
@@ -179,7 +179,11 @@ export interface Staff {
   workPhone?: string | null;
   contactEmail?: string | null;
   workEmail: string;
-  workStatus: 'insurance' | 'workPermit' | 'retired' | 'none';
+  employmentType: 'citizen' | 'workPermit' | 'residencePermit' | 'other';
+  nationality?: string | null;
+  identificationNumber?: string | null;
+  workPermitExpiry?: string | null;
+  address?: string | null;
   documents?: (number | Media)[] | null;
   isActive?: boolean | null;
   joinedAt?: string | null;
@@ -331,9 +335,9 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface InventorySelect<T extends boolean = true> {
   itemType?: T;
-  holder?: T;
   model?: T;
   serialNumber?: T;
+  holder?: T;
   status?: T;
   purchaseDate?: T;
   warrantyExpiry?: T;
@@ -357,7 +361,11 @@ export interface StaffSelect<T extends boolean = true> {
   workPhone?: T;
   contactEmail?: T;
   workEmail?: T;
-  workStatus?: T;
+  employmentType?: T;
+  nationality?: T;
+  identificationNumber?: T;
+  workPermitExpiry?: T;
+  address?: T;
   documents?: T;
   isActive?: T;
   joinedAt?: T;

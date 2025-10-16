@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { CalendarDays, Mail, Phone } from 'lucide-react'
 import type { Staff } from '@/payload-types'
+import { formatDate } from '@/lib/date-utils'
 
 interface InfoCardProps {
   staff: Staff
@@ -32,15 +33,7 @@ export function InfoCard({ staff }: InfoCardProps) {
           <CalendarDays className="h-4 w-4 mt-1 text-muted-foreground" />
           <div>
             <h4 className="text-sm font-medium">Birth Date</h4>
-            <p className="text-sm text-muted-foreground">
-              {staff.birthDate
-                ? new Date(staff.birthDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })
-                : 'Not specified'}
-            </p>
+            <p className="text-sm text-muted-foreground">{formatDate(staff.birthDate)}</p>
           </div>
         </div>
 

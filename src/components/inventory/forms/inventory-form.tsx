@@ -13,7 +13,9 @@ import { ArrowLeft, Save, X } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 
 const InventorySchemaBase = z.object({
-  itemType: z.string().min(1, 'Item type is required'),
+  itemType: z.enum(['laptop', 'phone', 'accessory', 'other'] as const, {
+    required_error: 'Item type is required',
+  }),
   holder: z.string().optional(),
   model: z.string().min(1, 'Model is required'),
   serialNumber: z.string().min(1, 'Serial number is required'),
@@ -70,7 +72,7 @@ export function InventoryForm({
   } = useForm<InventoryFormValues>({
     resolver: zodResolver(InventorySchema) as any,
     defaultValues: {
-      itemType: initialData?.itemType || '',
+      itemType: (initialData?.itemType as any) || 'other',
       model: initialData?.model || '',
       serialNumber: initialData?.serialNumber || '',
       status: (initialData?.status as any) || 'inStock',
@@ -143,6 +145,13 @@ export function InventoryForm({
     { value: 'underRepair', label: 'Under Repair' },
   ]
 
+  const itemTypeOptions: Option[] = [
+    { value: 'laptop', label: 'Laptop' },
+    { value: 'phone', label: 'Phone' },
+    { value: 'accessory', label: 'Accessory' },
+    { value: 'other', label: 'Other' },
+  ]
+
   const status = useWatch({ control, name: 'status' }) as string | undefined
   const holder = useWatch({ control, name: 'holder' }) as string | undefined
 
@@ -189,10 +198,12 @@ export function InventoryForm({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Item Type *"
+                <SelectField
+                  control={control}
                   name={'itemType'}
-                  register={register}
+                  label="Item Type *"
+                  placeholder="Select item type"
+                  options={itemTypeOptions}
                   error={errors.itemType?.message as string | undefined}
                 />
 

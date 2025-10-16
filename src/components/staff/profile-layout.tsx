@@ -8,15 +8,18 @@ import { ProfileCard } from './profile-card'
 import { InfoCard } from './info-card'
 import { StaffStatusToggle } from './status-toggle'
 import { updateStaffStatus } from '@/lib/actions/staff'
-import type { Staff } from '@/payload-types'
+import type { Staff, Inventory } from '@/payload-types'
 import { Card, CardContent } from '../ui/card'
 import { SetBreadcrumbLabel } from '@/components/set-breadcrumb-label'
+import { InventoryCard } from './inventory-card'
+import { EmploymentStatusCard } from './employment-status'
 
 interface ProfileLayoutProps {
   staff: Staff
+  inventory?: Inventory[]
 }
 
-export function ProfileLayout({ staff }: ProfileLayoutProps) {
+export function ProfileLayout({ staff, inventory = [] }: ProfileLayoutProps) {
   const handleStatusChange = async (isActive: boolean) => {
     await updateStaffStatus(String(staff.id), isActive)
   }
@@ -54,15 +57,9 @@ export function ProfileLayout({ staff }: ProfileLayoutProps) {
               <ProfileCard staff={staff} />
               {/* Contact Information Card */}
               <InfoCard staff={staff} />
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Placeholder for future cards */}
-                <div className="space-y-6">
-                  {/* Future: Assigned Equipment Card */}
-                  {/* Future: Leave History Card */}
-                  {/* Future: Performance Card */}
-                </div>
-              </div>
+              <EmploymentStatusCard staff={staff} />
+              
+              <InventoryCard inventory={inventory} />
             </div>
           </CardContent>
         </Card>

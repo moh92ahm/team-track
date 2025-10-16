@@ -93,7 +93,23 @@ export default async function EditStaffPage({ params }: EditStaffPageProps) {
         personalPhone: String(formData.get('personalPhone') || ''),
         workEmail: String(formData.get('workEmail') || ''),
         joinedAt: String(formData.get('joinedAt') || ''),
+        employmentType: String(formData.get('employmentType') || 'fullTime'),
+        workAuthorizationStatus: String(formData.get('workAuthorizationStatus') || 'citizen'),
+        nationality: String(formData.get('nationality') || ''),
+        IdentificationNumber: String(formData.get('IdentificationNumber') || ''),
+        workPermitNumber: String(formData.get('workPermitNumber') || ''),
+        insuranceStatus: String(formData.get('insuranceStatus') || 'insured'),
+        insuranceNumber: String(formData.get('insuranceNumber') || ''),
+        address: String(formData.get('address') || ''),
       }
+
+      // Optional date fields: set to value if provided, otherwise null to clear
+      const workPermitExpiry = String(formData.get('workPermitExpiry') || '')
+      staffData.workPermitExpiry = workPermitExpiry || null
+      const insuranceExpiry = String(formData.get('insuranceExpiry') || '')
+      staffData.insuranceExpiry = insuranceExpiry || null
+      const contactExpiry = String(formData.get('contactExpiry') || '')
+      staffData.contactExpiry = contactExpiry || null
 
       // Optional fields
       staffData.jobTitle = jobTitle || null

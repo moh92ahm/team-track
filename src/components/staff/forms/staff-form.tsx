@@ -9,14 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProfilePhotoUpload } from '@/components/ui/profile-photo-upload'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import type { Staff } from '@/payload-types'
-import { BirthDatePicker } from '@/components/birthdate-picker'
-import { JoinedAtDate } from '@/components/joined-at-date'
 import { useForm, Controller, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { StaffFormSchema, type StaffFormValues } from './staff-form.schema'
 import { SelectField } from '@/components/form/select-field'
 import { InputField } from '@/components/form/input-field'
 import { Spinner } from '@/components/ui/spinner'
+import { Separator } from '@/components/ui/separator'
+import { BirthdatePicker } from '@/components/date-pickers/birthdate-picker'
+import { JoinedDatePicker } from '@/components/date-pickers/joined-date-picker'
+import { WorkPermitExpiryPicker } from '@/components/date-pickers/work-permit-expiry-picker'
+import { formatDateForInput } from '@/lib/date-utils'
 
 interface StaffFormProps {
   initialData?: Partial<Staff>
@@ -46,7 +49,9 @@ export function StaffForm({
           ? initialData.photo
           : null,
     department:
-      typeof initialData?.department === 'object' && initialData.department && 'id' in initialData.department
+      typeof initialData?.department === 'object' &&
+      initialData.department &&
+      'id' in initialData.department
         ? String((initialData.department as any).id)
         : initialData?.department
           ? String(initialData.department)
@@ -58,21 +63,26 @@ export function StaffForm({
           ? String(initialData.role)
           : undefined,
     jobTitle: initialData?.jobTitle || '',
-    birthDate: initialData?.birthDate
-      ? new Date(initialData.birthDate).toISOString().split('T')[0]
-      : '',
+    birthDate: initialData?.birthDate ? formatDateForInput(initialData.birthDate) : '',
     personalPhone: Array.isArray(initialData?.personalPhone)
       ? initialData.personalPhone.join(', ')
       : initialData?.personalPhone || '',
     workPhone: initialData?.workPhone || '',
     contactEmail: initialData?.contactEmail || '',
     workEmail: initialData?.workEmail || '',
+    employmentType: (initialData as any)?.employmentType || 'other',
+    nationality: (initialData as any)?.nationality || '',
+    identificationNumber: (initialData as any)?.identificationNumber || '',
+    workPermitExpiry: (initialData as any)?.workPermitExpiry
+      ? formatDateForInput((initialData as any).workPermitExpiry)
+      : undefined,
+    address: (initialData as any)?.address || '',
     documents: [],
     isActive: initialData?.isActive ?? true,
     joinedAt: initialData?.joinedAt
-      ? new Date(initialData.joinedAt).toISOString()
+      ? formatDateForInput(initialData.joinedAt)
       : mode === 'create'
-        ? new Date().toISOString()
+        ? formatDateForInput(new Date())
         : undefined,
   }
 
@@ -81,6 +91,7 @@ export function StaffForm({
     control,
     handleSubmit: rhfHandleSubmit,
     trigger,
+    watch,
     formState: { errors, isSubmitting: isFormSubmitting },
   } = useForm<StaffFormValues>({
     resolver: zodResolver(StaffFormSchema) as any,
@@ -88,6 +99,9 @@ export function StaffForm({
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
+
+  // Watch employment type to conditionally show work permit expiry
+  const employmentType = watch('employmentType')
 
   const onValidSubmit: SubmitHandler<StaffFormValues> = React.useCallback(
     async (values) => {
@@ -107,7 +121,7 @@ export function StaffForm({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
+      <div className="w-full mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
@@ -132,9 +146,9 @@ export function StaffForm({
           {/* Basic Information Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Staff Profile Form</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {/* Profile Photo Upload */}
               <div className="flex justify-center">
                 <Controller
@@ -154,16 +168,16 @@ export function StaffForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
                   label="Full Name *"
-                  name={"fullName"}
+                  name={'fullName'}
                   register={register}
                   error={errors.fullName?.message as string | undefined}
                 />
 
-                <InputField label="Job Title" name={"jobTitle"} register={register} />
+                <InputField label="Job Title" name={'jobTitle'} register={register} />
 
                 <SelectField
                   control={control}
-                  name={"department"}
+                  name={'department'}
                   label="Department"
                   placeholder="Select department"
                   options={departments}
@@ -172,7 +186,7 @@ export function StaffForm({
 
                 <SelectField
                   control={control}
-                  name={"role"}
+                  name={'role'}
                   label="Role"
                   placeholder="Select role"
                   options={roles}
@@ -183,7 +197,7 @@ export function StaffForm({
                   control={control}
                   name="birthDate"
                   render={({ field }) => (
-                    <BirthDatePicker
+                    <BirthdatePicker
                       value={field.value}
                       onValueChange={field.onChange}
                       name="birthDate"
@@ -196,18 +210,67 @@ export function StaffForm({
                   control={control}
                   name="joinedAt"
                   render={({ field }) => (
-                    <JoinedAtDate value={field.value} onValueChange={field.onChange} name="joinedAt" />
+                    <JoinedDatePicker
+                      label="Joined At Date"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      name="joinedAt"
+                    />
                   )}
                 />
               </div>
 
+              <Separator />
+
+              {/* Employment Status */}
+              <CardTitle className="text-lg font-semibold">Employment Status</CardTitle>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField label="Nationality" name={'nationality'} register={register} />
+                <InputField
+                  label="Identification Number"
+                  name={'identificationNumber'}
+                  register={register}
+                />
+
+                <SelectField
+                  control={control}
+                  name={'employmentType'}
+                  label="Employment Type *"
+                  placeholder="Select employment type"
+                  options={[
+                    { label: 'Citizen', value: 'citizen' },
+                    { label: 'Work Permit', value: 'workPermit' },
+                    { label: 'Residence Permit', value: 'residencePermit' },
+                    { label: 'Other', value: 'other' },
+                  ]}
+                />
+
+                {/* Conditionally show Work Permit Expiry only when Work Permit is selected */}
+                {employmentType === 'workPermit' && (
+                  <Controller
+                    control={control}
+                    name="workPermitExpiry"
+                    render={({ field }) => (
+                      <WorkPermitExpiryPicker
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        name="workPermitExpiry"
+                        error={errors.workPermitExpiry?.message as string | undefined}
+                      />
+                    )}
+                  />
+                )}
+              </div>
+
+              <Separator />
+
               {/* Contact Information Section */}
-              <CardTitle>Contact Information</CardTitle>
+              <CardTitle className="text-lg font-bold">Contact Information</CardTitle>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputField
                     label="Work Email *"
-                    name={"workEmail"}
+                    name={'workEmail'}
                     register={register}
                     type="email"
                     error={errors.workEmail?.message as string | undefined}
@@ -215,7 +278,7 @@ export function StaffForm({
 
                   <InputField
                     label="Contact Email"
-                    name={"contactEmail"}
+                    name={'contactEmail'}
                     register={register}
                     type="email"
                     error={errors.contactEmail?.message as string | undefined}
@@ -223,13 +286,30 @@ export function StaffForm({
 
                   <InputField
                     label="Personal Phone *"
-                    name={"personalPhone"}
+                    name={'personalPhone'}
                     register={register}
                     type="tel"
                     error={errors.personalPhone?.message as string | undefined}
                   />
 
-                  <InputField label="Work Phone" name={"workPhone"} register={register} type="tel" />
+                  <InputField
+                    label="Work Phone"
+                    name={'workPhone'}
+                    register={register}
+                    type="tel"
+                  />
+
+                  <div className="md:col-span-2">
+                    <label className="px-1 text-sm font-medium" htmlFor="address">
+                      Address
+                    </label>
+                    <textarea
+                      id="address"
+                      className="mt-2 w-full rounded-md border bg-background p-2"
+                      rows={4}
+                      {...register('address')}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-4 mt-10">

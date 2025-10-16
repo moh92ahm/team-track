@@ -6,9 +6,17 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import Link from 'next/link'
 import { DataTable } from '../data-table'
+import { formatDate } from '@/lib/date-utils'
 
 interface StaffTableProps {
   data: Staff[]
+}
+
+const labelMap: Record<string, string> = {
+  citizen: 'Citizen',
+  workPermit: 'Work Permit',
+  residencePermit: 'Residence Permit',
+  other: 'Other',
 }
 
 export function StaffTable({ data }: StaffTableProps) {
@@ -58,7 +66,17 @@ export function StaffTable({ data }: StaffTableProps) {
     {
       key: 'joinedAt' as keyof Staff,
       header: 'Joined At',
-      render: (date: unknown) => (date ? new Date(date as string).toLocaleDateString() : '-'),
+      render: (date: unknown) => {
+        const isValidDate = date === null || typeof date === 'string' || date instanceof Date
+        return isValidDate ? formatDate(date as string | Date | null) : '-'
+      },
+    },
+    {
+      key: 'employmentType' as keyof Staff,
+      header: 'Employment Type',
+      render: (type: unknown) => (
+        <Badge>{type ? labelMap[String(type)] || String(type) : '-'}</Badge>
+      ),
     },
     {
       key: 'isActive' as keyof Staff,

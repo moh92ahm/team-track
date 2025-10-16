@@ -12,18 +12,32 @@ export const Inventory: CollectionConfig = {
     },
   admin: {
     useAsTitle: 'itemType',
-    defaultColumns: ['itemType', 'holder', 'model', 'status'],
+    defaultColumns: ['itemType', 'model', 'holder', 'status'],
   },
   fields: [
     {
       name: 'itemType',
-      type: 'text',
+      type: 'select',
+      options: [
+        {
+          label: 'Laptop',
+          value: 'laptop',
+        },
+        {
+          label: 'Phone',
+          value: 'phone',
+        },
+        {
+          label: 'Accessory',
+          value: 'accessory',
+        },
+        {
+          label: 'Other',
+          value: 'other',
+        },
+      ],
+      defaultValue: 'other',
       required: true,
-    },
-    {
-      name: 'holder',
-      type: 'relationship',
-      relationTo: 'staff',
     },
     {
       name: 'model',
@@ -35,6 +49,11 @@ export const Inventory: CollectionConfig = {
       type: 'text',
       required: true,
       unique: true,
+    },
+    {
+      name: 'holder',
+      type: 'relationship',
+      relationTo: 'staff',
     },
     {
       name: 'status',
@@ -77,9 +96,6 @@ export const Inventory: CollectionConfig = {
     {
       name: 'notes',
       type: 'textarea',
-      admin: {
-        position: 'sidebar',
-      },
     },
   ],
 }

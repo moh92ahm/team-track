@@ -9,14 +9,19 @@ import Link from 'next/link'
 
 interface InventoryTableProps {
   data: Inventory[]
+  enablePagination?: boolean
 }
 
-export function InventoryTable({ data }: InventoryTableProps) {
+export function InventoryTable({ data, enablePagination = true }: InventoryTableProps) {
   const columns = [
     {
       key: 'itemType' as keyof Inventory,
       header: 'Item Type',
       render: (value: unknown, item: Inventory) => <InventoryItemCell item={item} />,
+    },
+    {
+      key: 'model' as keyof Inventory,
+      header: 'Model',
     },
     {
       key: 'holder' as keyof Inventory,
@@ -27,10 +32,6 @@ export function InventoryTable({ data }: InventoryTableProps) {
           ? (holder as Staff).fullName
           : holder || '-'
       },
-    },
-    {
-      key: 'model' as keyof Inventory,
-      header: 'Model',
     },
     {
       key: 'status' as keyof Inventory,
@@ -72,6 +73,7 @@ export function InventoryTable({ data }: InventoryTableProps) {
         }))}
         columns={columns}
         actionColumn={actionColumn}
+        enablePagination={enablePagination}
       />
     </div>
   )

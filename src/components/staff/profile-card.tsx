@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardHeader } from '@/components/ui/card'
 import type { Staff } from '@/payload-types'
+import { formatDate } from '@/lib/date-utils'
 
 interface ProfileCardProps {
   staff: Staff
@@ -53,15 +54,7 @@ export function ProfileCard({ staff }: ProfileCardProps) {
             <div className="flex items-center space-x-4 mt-3">
               <div className="text-sm">
                 <span className="text-muted-foreground">Joined: </span>
-                <span className="font-medium">
-                  {staff.joinedAt
-                    ? new Date(staff.joinedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
-                    : 'Not specified'}
-                </span>
+                <span className="font-medium">{formatDate(staff.joinedAt)}</span>
               </div>
               <Badge variant={staff.isActive ? 'default' : 'secondary'}>
                 {staff.isActive ? 'Active' : 'Inactive'}
