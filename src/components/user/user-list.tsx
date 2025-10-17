@@ -9,14 +9,14 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, X, Filter } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Checkbox } from '@/components/ui/checkbox'
-import type { Staff } from '@/payload-types'
-import { StaffTable } from '@/components/staff/table'
+import type { User } from '@/payload-types'
+import { UserTable } from '@/components/user/table'
 
-interface StaffListProps {
-  data: Staff[]
+interface UserListProps {
+  data: User[]
 }
 
-export function StaffList({ data }: StaffListProps) {
+export function UserList({ data }: UserListProps) {
   const [query, setQuery] = React.useState('')
   const [debounced, setDebounced] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState<'all' | 'active' | 'inactive'>('all')
@@ -76,7 +76,7 @@ export function StaffList({ data }: StaffListProps) {
           ? (s.role as any).name
           : ''
         )?.toLowerCase() || ''
-      const email = (s.workEmail || '').toLowerCase()
+      const email = (s.email || '').toLowerCase()
       if (!q) return true
       return name.includes(q) || dept.includes(q) || role.includes(q) || email.includes(q)
     })
@@ -86,7 +86,7 @@ export function StaffList({ data }: StaffListProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-semibold">Team</h1>
+          <h1 className="text-xl font-semibold">Team Members</h1>
           <div className="text-sm text-muted-foreground">
             {data.length} total · {filtered.length} shown
           </div>
@@ -169,15 +169,15 @@ export function StaffList({ data }: StaffListProps) {
           </Popover>
 
           <Input
-            placeholder="Search staff..."
+            placeholder="Search users..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-56"
           />
-          <Link href="/team/new">
+          <Link href="/users/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add New Staff
+              Add New User
             </Button>
           </Link>
         </div>
@@ -203,7 +203,7 @@ export function StaffList({ data }: StaffListProps) {
         </div>
       )}
 
-      <StaffTable data={filtered} />
+      <UserTable data={filtered} />
     </div>
   )
 }

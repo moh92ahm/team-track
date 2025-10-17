@@ -1,6 +1,6 @@
 'use client'
 
-import { Staff } from '@/payload-types'
+import { User } from '@/payload-types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
@@ -8,8 +8,8 @@ import Link from 'next/link'
 import { DataTable } from '../data-table'
 import { formatDate } from '@/lib/date-utils'
 
-interface StaffTableProps {
-  data: Staff[]
+interface UserTableProps {
+  data: User[]
 }
 
 const labelMap: Record<string, string> = {
@@ -19,7 +19,7 @@ const labelMap: Record<string, string> = {
   other: 'Other',
 }
 
-export function StaffTable({ data }: StaffTableProps) {
+export function UserTable({ data }: UserTableProps) {
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -30,25 +30,25 @@ export function StaffTable({ data }: StaffTableProps) {
 
   const columns = [
     {
-      key: 'photo' as keyof Staff,
+      key: 'photo' as keyof User,
       header: 'Image',
-      render: (photo: unknown, staff: Staff) => {
+      render: (photo: unknown, user: User) => {
         const photoUrl =
           typeof photo === 'object' && photo && 'url' in photo ? (photo as { url: string }).url : ''
         return (
           <Avatar className="h-12 w-12">
-            <AvatarImage src={photoUrl} alt={staff.fullName} className="object-cover" />
-            <AvatarFallback className="text-md">{getInitials(staff.fullName)}</AvatarFallback>
+            <AvatarImage src={photoUrl} alt={user.fullName} className="object-cover" />
+            <AvatarFallback className="text-md">{getInitials(user.fullName)}</AvatarFallback>
           </Avatar>
         )
       },
     },
     {
-      key: 'fullName' as keyof Staff,
+      key: 'fullName' as keyof User,
       header: 'Full Name',
     },
     {
-      key: 'department' as keyof Staff,
+      key: 'department' as keyof User,
       header: 'Department',
       render: (dept: unknown) =>
         typeof dept === 'object' && dept && 'name' in dept
@@ -56,7 +56,7 @@ export function StaffTable({ data }: StaffTableProps) {
           : (dept as string) || '-',
     },
     {
-      key: 'role' as keyof Staff,
+      key: 'role' as keyof User,
       header: 'Role',
       render: (role: unknown) =>
         typeof role === 'object' && role && 'name' in role
@@ -64,7 +64,7 @@ export function StaffTable({ data }: StaffTableProps) {
           : String(role || '-'),
     },
     {
-      key: 'joinedAt' as keyof Staff,
+      key: 'joinedAt' as keyof User,
       header: 'Joined At',
       render: (date: unknown) => {
         const isValidDate = date === null || typeof date === 'string' || date instanceof Date
@@ -72,14 +72,14 @@ export function StaffTable({ data }: StaffTableProps) {
       },
     },
     {
-      key: 'employmentType' as keyof Staff,
+      key: 'employmentType' as keyof User,
       header: 'Employment Type',
       render: (type: unknown) => (
         <Badge>{type ? labelMap[String(type)] || String(type) : '-'}</Badge>
       ),
     },
     {
-      key: 'isActive' as keyof Staff,
+      key: 'isActive' as keyof User,
       header: 'Status',
       render: (isActive: unknown) => (
         <Badge variant={isActive ? 'default' : 'secondary'}>
@@ -89,8 +89,8 @@ export function StaffTable({ data }: StaffTableProps) {
     },
   ]
 
-  const actionColumn = (staff: Staff) => (
-    <Link href={`/team/${staff.id}`}>
+  const actionColumn = (user: User) => (
+    <Link href={`/users/${user.id}`}>
       <Button variant="outline" size="sm">
         View
       </Button>

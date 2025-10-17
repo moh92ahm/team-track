@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Plus } from 'lucide-react'
-import type { Inventory, Staff } from '@/payload-types'
+import type { Inventory, User as Staff } from '@/payload-types'
 import { InventoryTable } from '@/components/inventory/table'
 
 interface InventoryListProps {

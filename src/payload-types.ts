@@ -69,7 +69,6 @@ export interface Config {
   collections: {
     users: User;
     inventory: Inventory;
-    staff: Staff;
     roles: Role;
     departments: Department;
     media: Media;
@@ -81,7 +80,6 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     inventory: InventorySelect<false> | InventorySelect<true>;
-    staff: StaffSelect<false> | StaffSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -104,20 +102,34 @@ export interface Config {
   };
 }
 export interface UserAuthOperations {
-  forgotPassword: {
-    username: string;
-  };
-  login: {
-    password: string;
-    username: string;
-  };
+  forgotPassword:
+    | {
+        email: string;
+      }
+    | {
+        username: string;
+      };
+  login:
+    | {
+        email: string;
+        password: string;
+      }
+    | {
+        password: string;
+        username: string;
+      };
   registerFirstUser: {
     password: string;
     username: string;
+    email: string;
   };
-  unlock: {
-    username: string;
-  };
+  unlock:
+    | {
+        email: string;
+      }
+    | {
+        username: string;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -125,10 +137,26 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
-  name?: string | null;
+  fullName: string;
+  photo?: (number | null) | Media;
+  department?: (number | null) | Department;
+  role?: (number | null) | Role;
+  jobTitle?: string | null;
+  birthDate: string;
+  primaryPhone: string;
+  secondaryPhone?: string | null;
+  secondaryEmail?: string | null;
+  employmentType: 'citizen' | 'workPermit' | 'residencePermit' | 'other';
+  nationality?: string | null;
+  identificationNumber?: string | null;
+  workPermitExpiry?: string | null;
+  address?: string | null;
+  documents?: (number | Media)[] | null;
+  isActive?: boolean | null;
+  joinedAt?: string | null;
   updatedAt: string;
   createdAt: string;
-  email?: string | null;
+  email: string;
   username: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -144,51 +172,6 @@ export interface User {
       }[]
     | null;
   password?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inventory".
- */
-export interface Inventory {
-  id: number;
-  itemType: 'laptop' | 'phone' | 'accessory' | 'other';
-  model: string;
-  serialNumber: string;
-  holder?: (number | null) | Staff;
-  status: 'inUse' | 'inStock' | 'needsRepair' | 'underRepair';
-  purchaseDate?: string | null;
-  warrantyExpiry?: string | null;
-  image?: (number | Media)[] | null;
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "staff".
- */
-export interface Staff {
-  id: number;
-  fullName: string;
-  photo?: (number | null) | Media;
-  department?: (number | null) | Department;
-  role?: (number | null) | Role;
-  jobTitle?: string | null;
-  birthDate: string;
-  personalPhone: string;
-  workPhone?: string | null;
-  contactEmail?: string | null;
-  workEmail: string;
-  employmentType: 'citizen' | 'workPermit' | 'residencePermit' | 'other';
-  nationality?: string | null;
-  identificationNumber?: string | null;
-  workPermitExpiry?: string | null;
-  address?: string | null;
-  documents?: (number | Media)[] | null;
-  isActive?: boolean | null;
-  joinedAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -217,7 +200,7 @@ export interface Department {
   id: number;
   name: string;
   description?: string | null;
-  manager?: (number | null) | Staff;
+  manager?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -229,6 +212,24 @@ export interface Role {
   id: number;
   name: string;
   description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory".
+ */
+export interface Inventory {
+  id: number;
+  itemType: 'laptop' | 'phone' | 'accessory' | 'other';
+  model: string;
+  serialNumber: string;
+  holder?: (number | null) | User;
+  status: 'inUse' | 'inStock' | 'needsRepair' | 'underRepair';
+  purchaseDate?: string | null;
+  warrantyExpiry?: string | null;
+  image?: (number | Media)[] | null;
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -246,10 +247,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'inventory';
         value: number | Inventory;
-      } | null)
-    | ({
-        relationTo: 'staff';
-        value: number | Staff;
       } | null)
     | ({
         relationTo: 'roles';
@@ -310,7 +307,23 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  name?: T;
+  fullName?: T;
+  photo?: T;
+  department?: T;
+  role?: T;
+  jobTitle?: T;
+  birthDate?: T;
+  primaryPhone?: T;
+  secondaryPhone?: T;
+  secondaryEmail?: T;
+  employmentType?: T;
+  nationality?: T;
+  identificationNumber?: T;
+  workPermitExpiry?: T;
+  address?: T;
+  documents?: T;
+  isActive?: T;
+  joinedAt?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -343,32 +356,6 @@ export interface InventorySelect<T extends boolean = true> {
   warrantyExpiry?: T;
   image?: T;
   notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "staff_select".
- */
-export interface StaffSelect<T extends boolean = true> {
-  fullName?: T;
-  photo?: T;
-  department?: T;
-  role?: T;
-  jobTitle?: T;
-  birthDate?: T;
-  personalPhone?: T;
-  workPhone?: T;
-  contactEmail?: T;
-  workEmail?: T;
-  employmentType?: T;
-  nationality?: T;
-  identificationNumber?: T;
-  workPermitExpiry?: T;
-  address?: T;
-  documents?: T;
-  isActive?: T;
-  joinedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

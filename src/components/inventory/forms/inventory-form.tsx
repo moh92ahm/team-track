@@ -14,7 +14,7 @@ import { Spinner } from '@/components/ui/spinner'
 
 const InventorySchemaBase = z.object({
   itemType: z.enum(['laptop', 'phone', 'accessory', 'other'] as const, {
-    required_error: 'Item type is required',
+    error: 'Item type is required',
   }),
   holder: z.string().optional(),
   model: z.string().min(1, 'Model is required'),
@@ -234,7 +234,7 @@ export function InventoryForm({
                   control={control}
                   name={'holder'}
                   label="Holder"
-                  placeholder="Select staff holder"
+                  placeholder="Select user holder"
                   options={holderOptions}
                   error={errors.holder?.message as string | undefined}
                 />

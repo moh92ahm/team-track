@@ -17,7 +17,7 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
 
   try {
     const item = await payload.findByID({ collection: 'inventory', id, depth: 2, user })
-    const staffResult = await payload.find({ collection: 'staff', limit: 100, sort: 'fullName', user })
+    const staffResult = await payload.find({ collection: 'users', limit: 100, sort: 'fullName', user })
 
     const handleUpdate = async (formData: FormData) => {
       'use server'

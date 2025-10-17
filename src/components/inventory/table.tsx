@@ -1,6 +1,6 @@
 'use client'
 
-import { Inventory, Staff } from '@/payload-types'
+import { Inventory, User as Staff } from '@/payload-types'
 import { Badge } from '../ui/badge'
 import { DataTable } from '../data-table'
 import { InventoryItemCell } from './item-cell'

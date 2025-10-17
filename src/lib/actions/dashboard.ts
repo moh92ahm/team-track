@@ -3,9 +3,9 @@
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { headers } from 'next/headers'
-import type { Staff, Inventory } from '@/payload-types'
+import type { User, Inventory } from '@/payload-types'
 
-export interface StaffStats {
+export interface UserStats {
   total: number
   active: number
   inactive: number
@@ -27,7 +27,7 @@ export interface InventoryStats {
   }
 }
 
-export async function getStaffStats(): Promise<StaffStats> {
+export async function getUserStats(): Promise<UserStats> {
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers: await headers() })
 
@@ -35,15 +35,15 @@ export async function getStaffStats(): Promise<StaffStats> {
     throw new Error('Unauthorized')
   }
 
-  // Fetch all staff
-  const allStaff = await payload.find({
-    collection: 'staff',
-    limit: 1000, // Adjust based on your expected staff count
+  // Fetch all users (team)
+  const allUsers = await payload.find({
+    collection: 'users',
+    limit: 1000, // Adjust based on your expected user count
     user,
   })
 
-  const total = allStaff.docs.length
-  const active = allStaff.docs.filter((staff: Staff) => staff.isActive).length
+  const total = allUsers.docs.length
+  const active = allUsers.docs.filter((user: User) => user.isActive).length
   const inactive = total - active
 
   return {

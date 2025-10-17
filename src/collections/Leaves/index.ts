@@ -11,14 +11,14 @@ export const Leaves: CollectionConfig = {
     update: authenticated,  
   },
   admin: {
-    useAsTitle: 'staff',
-    defaultColumns: ['staff', 'status'],
+    useAsTitle: 'user',
+    defaultColumns: ['user', 'status'],
   },
   fields: [
     {
-      name: 'staff',
+      name: 'user',
       type: 'relationship',
-      relationTo: 'staff',
+      relationTo: 'users',
       required: true,
     },
     {

@@ -16,7 +16,7 @@ export default async function Page() {
   // Fetch inventory docs, include related holder
   const { docs } = await payload.find({
     collection: 'inventory',
-    depth: 2, // to resolve holder -> Staff
+    depth: 2, // to resolve holder -> User
     limit: 50, // adjust or wire to pagination
     sort: '-updatedAt',
     user, // ensure access rules apply to this user

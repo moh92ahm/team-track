@@ -9,9 +9,9 @@ export default async function NewInventoryPage() {
   const { user } = await payload.auth({ headers: await headers() })
   if (!user) redirect('/admin')
 
-  // Fetch staff options for holder select
+  // Fetch user options for holder select
   const staffResult = await payload.find({
-    collection: 'staff',
+    collection: 'users',
     limit: 100,
     sort: 'fullName',
     user,

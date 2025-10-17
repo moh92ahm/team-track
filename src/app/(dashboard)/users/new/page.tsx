@@ -2,9 +2,9 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { StaffForm } from '@/components/staff/forms/staff-form'
+import { UserForm } from '@/components/user/forms/user-form'
 
-export default async function NewStaffPage() {
+export default async function NewUserPage() {
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers: await headers() })
   if (!user) redirect('/admin')
@@ -25,7 +25,7 @@ export default async function NewStaffPage() {
     }),
   ])
 
-  const handleCreateStaff = async (formData: FormData) => {
+  const handleCreateUser = async (formData: FormData) => {
     'use server'
 
     const payload = await getPayload({ config: configPromise })
@@ -59,54 +59,65 @@ export default async function NewStaffPage() {
       photoId = uploadResult.id as number
     }
 
-    // Normalize optional fields to avoid invalid values (e.g., empty string for email)
-    const jobTitle = String(formData.get('jobTitle') || '')
-    const workPhone = String(formData.get('workPhone') || '')
-    const contactEmail = String(formData.get('contactEmail') || '')
+    // Auth fields
+    const email = String(formData.get('email') || '')
+    const username = String(formData.get('username') || '')
+    const password = String(formData.get('password') || '')
+    const confirmPassword = String(formData.get('confirmPassword') || '')
+    if (!email) throw new Error('Email is required')
+    if (!username || !password) throw new Error('Username and password are required')
+    if (password !== confirmPassword) throw new Error('Passwords do not match')
 
-    // Create the new staff member
-    const staffData: any = {
+    // Normalize optional fields
+    const jobTitle = String(formData.get('jobTitle') || '')
+    const secondaryPhone = String(formData.get('secondaryPhone') || '')
+    const secondaryEmail = String(formData.get('secondaryEmail') || '')
+
+    // Create the new user (team member)
+    const userData: any = {
       fullName,
       ...(photoId && { photo: photoId }),
       birthDate: String(formData.get('birthDate') || ''),
-      personalPhone: String(formData.get('personalPhone') || ''),
-      workEmail: String(formData.get('workEmail') || ''),
+      primaryPhone: String(formData.get('primaryPhone') || ''),
       joinedAt: String(formData.get('joinedAt') || new Date().toISOString()),
       employmentType: String(formData.get('employmentType') || 'other'),
       nationality: String(formData.get('nationality') || ''),
       identificationNumber: String(formData.get('identificationNumber') || ''),
       address: String(formData.get('address') || ''),
+      username,
+      password,
+      ...(email && { email }),
     }
 
     // Optional date fields: only include when provided (avoid sending empty strings)
     const workPermitExpiry = String(formData.get('workPermitExpiry') || '')
-    if (workPermitExpiry) staffData.workPermitExpiry = workPermitExpiry
+    if (workPermitExpiry) userData.workPermitExpiry = workPermitExpiry
 
-    if (jobTitle) staffData.jobTitle = jobTitle
-    if (workPhone) staffData.workPhone = workPhone
-    if (contactEmail) staffData.contactEmail = contactEmail
+    if (jobTitle) userData.jobTitle = jobTitle
+    if (secondaryPhone) userData.secondaryPhone = secondaryPhone
+    if (secondaryEmail) userData.secondaryEmail = secondaryEmail
 
     // Convert string IDs to numbers if they have values
     const department = String(formData.get('department') || '')
-    if (department) staffData.department = parseInt(department)
+    if (department) userData.department = parseInt(department)
     const role = String(formData.get('role') || '')
-    if (role) staffData.role = parseInt(role)
+    if (role) userData.role = parseInt(role)
 
-    const newStaff = await payload.create({
-      collection: 'staff',
-      data: staffData,
+    const newUser = await payload.create({
+      collection: 'users',
+      data: userData,
       user,
     })
 
     // Redirect to the new staff member's profile
-    redirect(`/team/${newStaff.id}`)
+    redirect(`/team/${newUser.id}`)
   }
 
   return (
     <>
-      <StaffForm
+      <UserForm
         mode="create"
-        formAction={handleCreateStaff}
+        formAction={handleCreateUser}
         departments={departmentsResult.docs.map((dept) => ({
           value: String(dept.id),
           label: dept.name,

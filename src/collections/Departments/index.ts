@@ -29,7 +29,7 @@ export const Departments: CollectionConfig = {
     {
       name: 'manager',
       type: 'relationship',
-      relationTo: 'staff',
+      relationTo: 'users',
     },
 
   ]

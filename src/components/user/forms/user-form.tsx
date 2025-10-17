@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 // Select handled via SelectField wrapper
 import { ProfilePhotoUpload } from '@/components/ui/profile-photo-upload'
 import { ArrowLeft, Save, X } from 'lucide-react'
-import type { Staff } from '@/payload-types'
+import type { User } from '@/payload-types'
 import { useForm, Controller, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { StaffFormSchema, type StaffFormValues } from './staff-form.schema'
+import { UserFormSchema, type UserFormValues } from './user-form.schema'
 import { SelectField } from '@/components/form/select-field'
 import { InputField } from '@/components/form/input-field'
 import { Spinner } from '@/components/ui/spinner'
@@ -21,9 +21,9 @@ import { JoinedDatePicker } from '@/components/date-pickers/joined-date-picker'
 import { WorkPermitExpiryPicker } from '@/components/date-pickers/work-permit-expiry-picker'
 import { formatDateForInput } from '@/lib/date-utils'
 
-interface StaffFormProps {
-  initialData?: Partial<Staff>
-  onSubmit?: (data: StaffFormValues) => Promise<any>
+interface UserFormProps {
+  initialData?: Partial<User>
+  onSubmit?: (data: UserFormValues) => Promise<any>
   formAction?: (formData: FormData) => Promise<void>
   mode: 'create' | 'edit'
   isSubmitting?: boolean
@@ -31,7 +31,7 @@ interface StaffFormProps {
   roles?: Array<{ value: string; label: string }>
 }
 
-export function StaffForm({
+export function UserForm({
   initialData,
   onSubmit,
   formAction,
@@ -39,9 +39,13 @@ export function StaffForm({
   isSubmitting = false,
   departments = [],
   roles = [],
-}: StaffFormProps) {
-  const defaultValues: StaffFormValues = {
+}: UserFormProps) {
+  const defaultValues: UserFormValues = {
     fullName: initialData?.fullName || '',
+    username: initialData?.username || '',
+    email: initialData?.email || '',
+    password: '',
+    confirmPassword: '',
     photo:
       typeof initialData?.photo === 'object' && initialData.photo && 'url' in initialData.photo
         ? (initialData.photo as { url: string }).url || null
@@ -64,12 +68,9 @@ export function StaffForm({
           : undefined,
     jobTitle: initialData?.jobTitle || '',
     birthDate: initialData?.birthDate ? formatDateForInput(initialData.birthDate) : '',
-    personalPhone: Array.isArray(initialData?.personalPhone)
-      ? initialData.personalPhone.join(', ')
-      : initialData?.personalPhone || '',
-    workPhone: initialData?.workPhone || '',
-    contactEmail: initialData?.contactEmail || '',
-    workEmail: initialData?.workEmail || '',
+    primaryPhone: initialData?.primaryPhone || '',
+    secondaryPhone: initialData?.secondaryPhone || '',
+    secondaryEmail: initialData?.secondaryEmail || '',
     employmentType: (initialData as any)?.employmentType || 'other',
     nationality: (initialData as any)?.nationality || '',
     identificationNumber: (initialData as any)?.identificationNumber || '',
@@ -93,8 +94,8 @@ export function StaffForm({
     trigger,
     watch,
     formState: { errors, isSubmitting: isFormSubmitting },
-  } = useForm<StaffFormValues>({
-    resolver: zodResolver(StaffFormSchema) as any,
+  } = useForm<UserFormValues>({
+    resolver: zodResolver(UserFormSchema) as any,
     defaultValues,
     mode: 'onSubmit',
     reValidateMode: 'onChange',
@@ -103,7 +104,7 @@ export function StaffForm({
   // Watch employment type to conditionally show work permit expiry
   const employmentType = watch('employmentType')
 
-  const onValidSubmit: SubmitHandler<StaffFormValues> = React.useCallback(
+  const onValidSubmit: SubmitHandler<UserFormValues> = React.useCallback(
     async (values) => {
       if (!onSubmit) return
       try {
@@ -125,14 +126,14 @@ export function StaffForm({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <Link href={mode === 'edit' ? `/team/${initialData?.id}` : '/team'}>
+            <Link href={mode === 'edit' ? `/users/${initialData?.id}` : '/users'}>
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
             </Link>
             <h1 className="text-2xl font-bold">
-              {mode === 'create' ? 'Add New Staff Member' : 'Edit Staff Profile'}
+              {mode === 'create' ? 'Add New User' : 'Edit User Profile'}
             </h1>
           </div>
         </div>
@@ -140,13 +141,44 @@ export function StaffForm({
         <form
           ref={formRef}
           action={formAction as any}
-          onSubmit={!formAction ? rhfHandleSubmit(onValidSubmit) : undefined}
+          onSubmit={async (e) => {
+            if (!formAction) return
+            // For server-action mode, do client-side checks first
+            if (mode === 'create') {
+              e.preventDefault()
+              const ok = await trigger()
+              if (!ok) return
+              // Enforce password presence and match on create
+              const pwd = (watch('password') as string) || ''
+              const cpwd = (watch('confirmPassword') as string) || ''
+              if (!pwd) {
+                // eslint-disable-next-line no-alert
+                alert('Password is required')
+                return
+              }
+              if (!cpwd) {
+                // eslint-disable-next-line no-alert
+                alert('Confirm password is required')
+                return
+              }
+              if (pwd !== cpwd) {
+                // eslint-disable-next-line no-alert
+                alert('Passwords do not match')
+                return
+              }
+              setNativeSubmitting(true)
+              // Use native submit to invoke the server action
+              formRef.current?.submit()
+              return
+            }
+            // In edit mode, allow native submission without blocking
+          }}
           className="space-y-6"
         >
           {/* Basic Information Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Staff Profile Form</CardTitle>
+              <CardTitle>User Profile Form</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Profile Photo Upload */}
@@ -166,6 +198,37 @@ export function StaffForm({
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Email *"
+                  name={'email'}
+                  register={register}
+                  error={errors.email?.message as string | undefined}
+                />
+                <InputField
+                  label="Username *"
+                  name={'username'}
+                  register={register}
+                  error={errors.username?.message as string | undefined}
+                />
+                {mode === 'create' && (
+                  <>
+                    <InputField
+                      label="Password *"
+                      name={'password'}
+                      register={register}
+                      type="password"
+                      error={errors.password?.message as string | undefined}
+                    />
+                    <InputField
+                      label="Confirm Password *"
+                      name={'confirmPassword'}
+                      register={register}
+                      type="password"
+                      error={errors.confirmPassword?.message as string | undefined}
+                    />
+                  </>
+                )}
+
                 <InputField
                   label="Full Name *"
                   name={'fullName'}
@@ -269,34 +332,24 @@ export function StaffForm({
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputField
-                    label="Work Email *"
-                    name={'workEmail'}
-                    register={register}
-                    type="email"
-                    error={errors.workEmail?.message as string | undefined}
-                  />
-
-                  <InputField
-                    label="Contact Email"
-                    name={'contactEmail'}
-                    register={register}
-                    type="email"
-                    error={errors.contactEmail?.message as string | undefined}
-                  />
-
-                  <InputField
-                    label="Personal Phone *"
-                    name={'personalPhone'}
+                    label="Primary Phone *"
+                    name={'primaryPhone'}
                     register={register}
                     type="tel"
-                    error={errors.personalPhone?.message as string | undefined}
+                    error={errors.primaryPhone?.message as string | undefined}
                   />
-
                   <InputField
-                    label="Work Phone"
-                    name={'workPhone'}
+                    label="Secondary Phone"
+                    name={'secondaryPhone'}
                     register={register}
                     type="tel"
+                  />
+                  <InputField
+                    label="Secondary Email"
+                    name={'secondaryEmail'}
+                    register={register}
+                    type="email"
+                    error={errors.secondaryEmail?.message as string | undefined}
                   />
 
                   <div className="md:col-span-2">
@@ -315,24 +368,16 @@ export function StaffForm({
                 <div className="space-y-4 mt-10">
                   {/* Form Actions */}
                   <div className="flex justify-end space-x-4">
-                    <Link href={mode === 'edit' ? `/team/${initialData?.id}` : '/team'}>
+                    <Link href={mode === 'edit' ? `/users/${initialData?.id}` : '/users'}>
                       <Button type="button" variant="outline" className="cursor-pointer">
                         <X className="h-4 w-4 mr-2" />
                         Cancel
                       </Button>
                     </Link>
                     <Button
-                      type={formAction ? 'button' : 'submit'}
+                      type={formAction ? 'submit' : 'submit'}
                       disabled={isSubmitting || isFormSubmitting || nativeSubmitting}
                       className="cursor-pointer disabled:cursor-not-allowed"
-                      onClick={async () => {
-                        if (!formAction) return
-                        const valid = await trigger()
-                        if (valid) {
-                          setNativeSubmitting(true)
-                          formRef.current?.requestSubmit()
-                        }
-                      }}
                     >
                       {isSubmitting || isFormSubmitting || nativeSubmitting ? (
                         <Spinner className="h-4 w-4 mr-2" />
@@ -344,7 +389,7 @@ export function StaffForm({
                           ? 'Creating...'
                           : 'Saving...'
                         : mode === 'create'
-                          ? 'Create Staff Member'
+                          ? 'Create User'
                           : 'Save Changes'}
                     </Button>
                   </div>
@@ -357,3 +402,4 @@ export function StaffForm({
     </div>
   )
 }
+

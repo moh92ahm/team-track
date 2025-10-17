@@ -3,15 +3,15 @@
 import * as React from 'react'
 import { Switch } from '@/components/ui/switch'
 import { Loader2 } from 'lucide-react'
-import type { Staff } from '@/payload-types'
+import type { User } from '@/payload-types'
 
-interface StaffStatusToggleProps {
-  staff: Staff
+interface UserStatusToggleProps {
+  user: User
   onStatusChange?: (isActive: boolean) => Promise<void>
 }
 
-export function StaffStatusToggle({ staff, onStatusChange }: StaffStatusToggleProps) {
-  const [isActive, setIsActive] = React.useState<boolean>(Boolean(staff.isActive))
+export function UserStatusToggle({ user, onStatusChange }: UserStatusToggleProps) {
+  const [isActive, setIsActive] = React.useState<boolean>(Boolean(user.isActive))
   const [isLoading, setIsLoading] = React.useState(false)
 
   const handleToggle = async (checked: boolean) => {

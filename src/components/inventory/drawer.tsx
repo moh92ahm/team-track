@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { Inventory, Staff } from '@/payload-types'
+import type { Inventory, User as Staff } from '@/payload-types'
 import Link from 'next/link'
 import { updateInventoryInline } from '@/lib/actions/inventory'
 
@@ -107,7 +107,7 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
             <SelectContent>
               <div className="p-2">
                 <Input
-                  placeholder="Search staff..."
+                  placeholder="Search users..."
                   value={holderQuery}
                   onChange={(e) => setHolderQuery(e.target.value)}
                 />

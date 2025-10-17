@@ -8,8 +8,7 @@ export async function GET() {
   const { user } = await payload.auth({ headers: await headers() })
   if (!user) return NextResponse.json({ options: [] }, { status: 401 })
 
-  const res = await payload.find({ collection: 'staff', limit: 100, sort: 'fullName', user })
+  const res = await payload.find({ collection: 'users', limit: 100, sort: 'fullName', user })
   const options = res.docs.map((s) => ({ value: String(s.id), label: s.fullName }))
   return NextResponse.json({ options })
 }
-

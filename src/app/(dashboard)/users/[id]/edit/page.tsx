@@ -2,25 +2,25 @@ import { headers } from 'next/headers'
 import { redirect, notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
-import { StaffForm } from '@/components/staff/forms/staff-form'
+import { UserForm } from '@/components/user/forms/user-form'
 import { SetBreadcrumbLabel } from '@/components/set-breadcrumb-label'
 
-interface EditStaffPageProps {
+interface EditUserPageProps {
   params: Promise<{
     id: string
   }>
 }
 
-export default async function EditStaffPage({ params }: EditStaffPageProps) {
+export default async function EditUserPage({ params }: EditUserPageProps) {
   const { id } = await params
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers: await headers() })
-  if (!user) redirect('/admin')
+  if (!user) redirect('/login')
 
   try {
-    // Fetch the staff member to edit
-    const staff = await payload.findByID({
-      collection: 'staff',
+    // Fetch the user to edit
+    const userToEdit = await payload.findByID({
+      collection: 'users',
       id: id,
       depth: 2, // to resolve relationships
       user,
@@ -42,7 +42,7 @@ export default async function EditStaffPage({ params }: EditStaffPageProps) {
       }),
     ])
 
-    const handleUpdateStaff = async (formData: FormData) => {
+    const handleUpdateUser = async (formData: FormData) => {
       'use server'
 
       const payload = await getPayload({ config: configPromise })
@@ -82,64 +82,60 @@ export default async function EditStaffPage({ params }: EditStaffPageProps) {
 
       // Normalize optionals; email field must not receive empty string
       const jobTitle = String(formData.get('jobTitle') || '')
-      const workPhone = String(formData.get('workPhone') || '')
-      const contactEmail = String(formData.get('contactEmail') || '')
+      const secondaryPhone = String(formData.get('secondaryPhone') || '')
+      const secondaryEmail = String(formData.get('secondaryEmail') || '')
+      const email = String(formData.get('email') || '')
+      const username = String(formData.get('username') || '')
 
-      // Update the staff member
-      const staffData: any = {
+      // Update the user
+      const userData: any = {
         fullName,
         ...(photoId && { photo: photoId }),
         birthDate: String(formData.get('birthDate') || ''),
-        personalPhone: String(formData.get('personalPhone') || ''),
-        workEmail: String(formData.get('workEmail') || ''),
+        primaryPhone: String(formData.get('primaryPhone') || ''),
+        ...(email ? { email } : {}),
+        ...(username ? { username } : {}),
         joinedAt: String(formData.get('joinedAt') || ''),
-        employmentType: String(formData.get('employmentType') || 'fullTime'),
-        workAuthorizationStatus: String(formData.get('workAuthorizationStatus') || 'citizen'),
+        employmentType: String(formData.get('employmentType') || 'other'),
         nationality: String(formData.get('nationality') || ''),
-        IdentificationNumber: String(formData.get('IdentificationNumber') || ''),
-        workPermitNumber: String(formData.get('workPermitNumber') || ''),
-        insuranceStatus: String(formData.get('insuranceStatus') || 'insured'),
-        insuranceNumber: String(formData.get('insuranceNumber') || ''),
+        identificationNumber: String(formData.get('identificationNumber') || ''),
         address: String(formData.get('address') || ''),
       }
 
       // Optional date fields: set to value if provided, otherwise null to clear
       const workPermitExpiry = String(formData.get('workPermitExpiry') || '')
-      staffData.workPermitExpiry = workPermitExpiry || null
-      const insuranceExpiry = String(formData.get('insuranceExpiry') || '')
-      staffData.insuranceExpiry = insuranceExpiry || null
-      const contactExpiry = String(formData.get('contactExpiry') || '')
-      staffData.contactExpiry = contactExpiry || null
+      userData.workPermitExpiry = workPermitExpiry || null
+      // remove unrelated insurance/contact expiry fields
 
       // Optional fields
-      staffData.jobTitle = jobTitle || null
-      staffData.workPhone = workPhone || null
-      staffData.contactEmail = contactEmail || null
+      userData.jobTitle = jobTitle || null
+      userData.secondaryPhone = secondaryPhone || null
+      userData.secondaryEmail = secondaryEmail || null
 
       // Convert string IDs to numbers if they have values
       const department = String(formData.get('department') || '')
-      if (department) staffData.department = parseInt(department)
+      if (department) userData.department = parseInt(department)
       const role = String(formData.get('role') || '')
-      if (role) staffData.role = parseInt(role)
+      if (role) userData.role = parseInt(role)
 
       await payload.update({
-        collection: 'staff',
+        collection: 'users',
         id: id,
-        data: staffData as any,
+        data: userData as any,
         user,
       })
 
-      // Redirect back to the staff profile
-      redirect(`/team/${id}`)
+      // Redirect back to the user profile
+      redirect(`/users/${user.id}`)
     }
 
     return (
       <>
-        <SetBreadcrumbLabel label={staff.fullName} />
-        <StaffForm
+        <SetBreadcrumbLabel label={userToEdit.fullName} />
+        <UserForm
         mode="edit"
-        initialData={staff}
-        formAction={handleUpdateStaff}
+        initialData={userToEdit}
+        formAction={handleUpdateUser}
         departments={departmentsResult.docs.map((dept) => ({ value: String(dept.id), label: dept.name }))}
         roles={rolesResult.docs.map((role) => ({ value: String(role.id), label: role.name }))}
         />

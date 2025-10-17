@@ -53,7 +53,7 @@ export const Inventory: CollectionConfig = {
     {
       name: 'holder',
       type: 'relationship',
-      relationTo: 'staff',
+      relationTo: 'users',
     },
     {
       name: 'status',

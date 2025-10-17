@@ -5,7 +5,7 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { revalidatePath } from 'next/cache'
 
-export async function updateStaffStatus(staffId: string, isActive: boolean) {
+export async function updateUserStatus(userId: string, isActive: boolean) {
   try {
     const payload = await getPayload({ config: configPromise })
     const { user } = await payload.auth({ headers: await headers() })
@@ -15,21 +15,21 @@ export async function updateStaffStatus(staffId: string, isActive: boolean) {
     }
 
     await payload.update({
-      collection: 'staff',
-      id: staffId,
+      collection: 'users',
+      id: userId,
       data: {
         isActive,
       },
       user,
     })
 
-    // Revalidate the team pages to show updated status
-    revalidatePath('/team')
-    revalidatePath(`/team/${staffId}`)
+    // Revalidate the user pages to show updated status
+    revalidatePath('/users')
+    revalidatePath(`/users/${userId}`)
 
     return { success: true }
   } catch (error) {
-    console.error('Error updating staff status:', error)
-    throw new Error('Failed to update staff status')
+    console.error('Error updating user status:', error)
+    throw new Error('Failed to update user status')
   }
 }

@@ -8,19 +8,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import type { StaffStats } from '@/lib/actions/dashboard'
+import type { UserStats } from '@/lib/actions/dashboard'
 
-interface StaffOverviewCardProps {
-  stats: StaffStats
+interface UserOverviewCardProps {
+  stats: UserStats
 }
 
-export function StaffOverviewCard({ stats }: StaffOverviewCardProps) {
+export function UserOverviewCard({ stats }: UserOverviewCardProps) {
   const activePercentage = stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardDescription>Total Staff</CardDescription>
+        <CardDescription>Total Users</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
           {stats.total}
         </CardTitle>

@@ -1,18 +1,18 @@
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { StaffOverviewCard } from '@/components/dashboard/staff-overview-card'
+import { UserOverviewCard } from '@/components/dashboard/user-overview-card'
 import { InventoryOverviewCard } from '@/components/dashboard/inventory-overview-card'
-import { getStaffStats, getInventoryStats } from '@/lib/actions/dashboard'
+import { getInventoryStats, getUserStats } from '@/lib/actions/dashboard'
 import { getCurrentUser } from '@/lib/auth'
 
 export default async function Page() {
   // Fetch current user and dashboard stats
-  const [user, staffStats, inventoryStats] = await Promise.all([
+  const [user, userStats, inventoryStats] = await Promise.all([
     getCurrentUser(),
-    getStaffStats(),
+    getUserStats(),
     getInventoryStats(),
   ])
 
-  const userName = user?.email?.split('@')[0] || 'User'
+  const userName = user?.username?.toUpperCase() || 'User'
 
   return (
     <div className="flex flex-1 flex-col">
@@ -28,7 +28,7 @@ export default async function Page() {
 
           {/* Overview Cards */}
           <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-4 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6">
-            <StaffOverviewCard stats={staffStats} />
+            <UserOverviewCard stats={userStats} />
             <InventoryOverviewCard stats={inventoryStats} />
           </div>
 
