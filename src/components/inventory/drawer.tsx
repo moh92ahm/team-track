@@ -1,12 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { Inventory, User as Staff } from '@/payload-types'
+import type { Inventory, User } from '@/payload-types'
 import Link from 'next/link'
 import { updateInventoryInline } from '@/lib/actions/inventory'
 
@@ -24,10 +23,10 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
   const [saving, setSaving] = React.useState(false)
 
   React.useEffect(() => {
-    // Fetch staff options for holder select
+    // Fetch user options for holder select
     const fetchHolders = async () => {
       try {
-        const res = await fetch('/api/staff/options')
+        const res = await fetch('/api/users/options')
         if (res.ok) {
           const data = await res.json()
           setHolders(data.options)
@@ -55,7 +54,7 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
 
   const holder =
     typeof item.holder === 'object' && item.holder !== null && 'fullName' in item.holder
-      ? (item.holder as Staff).fullName
+      ? (item.holder as User ).fullName
       : item.holder || 'Unassigned'
 
   return (

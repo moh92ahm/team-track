@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     inventory: Inventory;
+    'leave-days': LeaveDay;
     roles: Role;
     departments: Department;
     media: Media;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     inventory: InventorySelect<false> | InventorySelect<true>;
+    'leave-days': LeaveDaysSelect<false> | LeaveDaysSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -235,6 +237,23 @@ export interface Inventory {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leave-days".
+ */
+export interface LeaveDay {
+  id: number;
+  user: number | User;
+  type: 'annual' | 'sick' | 'unpaid' | 'other';
+  startDate: string;
+  endDate: string;
+  totalDays?: number | null;
+  status?: ('requested' | 'approved' | 'rejected' | 'cancelled') | null;
+  reason: string;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -247,6 +266,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'inventory';
         value: number | Inventory;
+      } | null)
+    | ({
+        relationTo: 'leave-days';
+        value: number | LeaveDay;
       } | null)
     | ({
         relationTo: 'roles';
@@ -356,6 +379,22 @@ export interface InventorySelect<T extends boolean = true> {
   warrantyExpiry?: T;
   image?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leave-days_select".
+ */
+export interface LeaveDaysSelect<T extends boolean = true> {
+  user?: T;
+  type?: T;
+  startDate?: T;
+  endDate?: T;
+  totalDays?: T;
+  status?: T;
+  reason?: T;
+  note?: T;
   updatedAt?: T;
   createdAt?: T;
 }

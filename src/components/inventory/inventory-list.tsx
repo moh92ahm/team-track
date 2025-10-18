@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Plus } from 'lucide-react'
-import type { Inventory, User as Staff } from '@/payload-types'
+import type { Inventory, User } from '@/payload-types'
 import { InventoryTable } from '@/components/inventory/table'
 
 interface InventoryListProps {
@@ -37,7 +37,7 @@ export function InventoryList({ data }: InventoryListProps) {
       const status = (item.status || '').toUpperCase()
       const holder =
         typeof item.holder === 'object' && item.holder && 'fullName' in item.holder
-          ? ((item.holder as Staff).fullName || '').toUpperCase()
+          ? ((item.holder as User).fullName || '').toUpperCase()
           : (String(item.holder || '').toUpperCase())
       if (!q) return true
       return type.includes(q) || model.includes(q) || serial.includes(q) || status.includes(q) || holder.includes(q)

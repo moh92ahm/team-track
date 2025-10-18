@@ -22,7 +22,7 @@ export function UserStatusToggle({ user, onStatusChange }: UserStatusToggleProps
       await onStatusChange(checked)
       setIsActive(checked)
     } catch (error) {
-      console.error('Failed to update staff status:', error)
+      console.error('Failed to update user status:', error)
       // Revert the visual state if the update failed
     } finally {
       setIsLoading(false)
@@ -39,7 +39,7 @@ export function UserStatusToggle({ user, onStatusChange }: UserStatusToggleProps
                 checked={isActive}
                 onCheckedChange={handleToggle}
                 disabled={isLoading}
-                aria-label="Toggle staff active status"
+                aria-label="Toggle user active status"
               />
             </div>
           </div>

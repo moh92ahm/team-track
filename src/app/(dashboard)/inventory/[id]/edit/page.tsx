@@ -17,7 +17,7 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
 
   try {
     const item = await payload.findByID({ collection: 'inventory', id, depth: 2, user })
-    const staffResult = await payload.find({ collection: 'users', limit: 100, sort: 'fullName', user })
+    const userResult = await payload.find({ collection: 'users', limit: 100, sort: 'fullName', user })
 
     const handleUpdate = async (formData: FormData) => {
       'use server'
@@ -80,7 +80,7 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
         mode="edit"
         initialData={item}
         formAction={handleUpdate}
-        holders={staffResult.docs.map((s) => ({ value: String(s.id), label: s.fullName }))}
+        holders={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
         />
       </>
     )

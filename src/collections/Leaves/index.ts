@@ -1,18 +1,31 @@
 import type { CollectionConfig } from 'payload'
 import { authenticated } from '@/access/authenticated'
 
-export const Leaves: CollectionConfig = {
-  slug: 'leaves',
+export const LeaveDays: CollectionConfig = {
+  slug: 'leave-days',
   access: {
     admin: authenticated,
     read: authenticated,
     delete: authenticated,
     create: authenticated,
-    update: authenticated,  
+    update: authenticated,
   },
   admin: {
     useAsTitle: 'user',
     defaultColumns: ['user', 'status'],
+  },
+  hooks: {
+    beforeChange: [
+      ({ data }) => {
+        if (data?.startDate && data?.endDate) {
+          const start = new Date(data.startDate)
+          const end = new Date(data.endDate)
+          const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+          data.totalDays = diff
+        }
+        return data
+      },
+    ],
   },
   fields: [
     {
@@ -26,10 +39,10 @@ export const Leaves: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
-        { label: 'Annual', value: 'annual'},
-        { label: 'Sick', value: 'sick'},
-        { label: 'Unpaid', value: 'unpaid'},
-        { label: 'Other', value: 'other'},
+        { label: 'Annual', value: 'annual' },
+        { label: 'Sick', value: 'sick' },
+        { label: 'Unpaid', value: 'unpaid' },
+        { label: 'Other', value: 'other' },
       ],
     },
     {
@@ -48,28 +61,15 @@ export const Leaves: CollectionConfig = {
       admin: {
         readOnly: true,
       },
-      hooks: {
-        beforeChange: [
-          ({ data }) => {
-            if (data?.startDate && data?.endDate) {
-              const start = new Date(data.startDate)
-              const end = new Date(data.endDate)
-              const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
-              data.totalDays = diff
-            }
-            return data
-          },
-        ],
-      },
     },
     {
       name: 'status',
       type: 'select',
       options: [
-        { label: 'Requested', value: 'requested'},
-        { label: 'Approved', value: 'approved'},
-        { label: 'Rejected', value: 'rejected'},
-        { label: 'Cancelled', value: 'cancelled'},
+        { label: 'Requested', value: 'requested' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Rejected', value: 'rejected' },
+        { label: 'Cancelled', value: 'cancelled' },
       ],
       defaultValue: 'requested',
     },
@@ -81,7 +81,7 @@ export const Leaves: CollectionConfig = {
     {
       name: 'note',
       type: 'textarea',
-    }
+    },
   ],
   timestamps: true,
 }

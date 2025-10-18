@@ -1,6 +1,6 @@
 'use client'
 
-import { Inventory, User as Staff } from '@/payload-types'
+import { Inventory, User } from '@/payload-types'
 import { Badge } from '../ui/badge'
 import { DataTable } from '../data-table'
 import { InventoryItemCell } from './item-cell'
@@ -29,7 +29,7 @@ export function InventoryTable({ data, enablePagination = true }: InventoryTable
       render: (value: unknown, item: Inventory) => {
         const holder = item.holder
         return typeof holder === 'object' && holder !== null && 'fullName' in holder
-          ? (holder as Staff).fullName
+          ? (holder as User).fullName
           : holder || '-'
       },
     },

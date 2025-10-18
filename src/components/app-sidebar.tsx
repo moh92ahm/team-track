@@ -41,6 +41,11 @@ const data = {
       url: '/inventory',
       icon: IconBuildingWarehouse,
     },
+    {
+      title: 'Leaves',
+      url: '/leaves',
+      icon: IconUsers,
+    },
   ],
   // navClouds: [
   //   {

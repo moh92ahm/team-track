@@ -7,10 +7,10 @@ import { InventoryForm } from '@/components/inventory/forms/inventory-form'
 export default async function NewInventoryPage() {
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers: await headers() })
-  if (!user) redirect('/admin')
+  if (!user) redirect('/login')
 
   // Fetch user options for holder select
-  const staffResult = await payload.find({
+  const userResult = await payload.find({
     collection: 'users',
     limit: 100,
     sort: 'fullName',
@@ -70,7 +70,7 @@ export default async function NewInventoryPage() {
       <InventoryForm
       mode="create"
       formAction={handleCreateInventory}
-      holders={staffResult.docs.map((s) => ({ value: String(s.id), label: s.fullName }))}
+      holders={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
       />
     </>
   )
