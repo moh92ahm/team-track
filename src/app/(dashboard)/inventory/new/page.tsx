@@ -35,7 +35,9 @@ export default async function NewInventoryPage() {
     const notes = String(formData.get('notes') || '')
 
     // Upload multiple images
-    const imageFiles = formData.getAll('image').filter((f): f is File => f instanceof File && f.size > 0)
+    const imageFiles = formData
+      .getAll('image')
+      .filter((f): f is File => f instanceof File && f.size > 0)
     const imageIds: number[] = []
     for (const file of imageFiles) {
       const buffer = Buffer.from(await file.arrayBuffer())
@@ -54,7 +56,12 @@ export default async function NewInventoryPage() {
       serialNumber,
       status,
     }
-    if (holder) data.holder = parseInt(holder)
+    if (holder && holder.trim() !== '') {
+      const holderId = parseInt(holder)
+      if (!isNaN(holderId)) {
+        data.holder = holderId
+      }
+    }
     if (purchaseDate) data.purchaseDate = purchaseDate
     if (warrantyExpiry) data.warrantyExpiry = warrantyExpiry
     if (notes) data.notes = notes
@@ -68,9 +75,9 @@ export default async function NewInventoryPage() {
   return (
     <>
       <InventoryForm
-      mode="create"
-      formAction={handleCreateInventory}
-      holders={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
+        mode="create"
+        formAction={handleCreateInventory}
+        holders={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
       />
     </>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { LeaveDay, User } from '@/payload-types'
+import { Payroll, User } from '@/payload-types'
 import { Badge } from '../ui/badge'
 import { DataTable } from '../data-table'
 import { Button } from '../ui/button'
@@ -14,27 +14,27 @@ import {
 } from '../ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
 
-interface LeaveDayTableProps {
-  data: LeaveDay[]
+interface PayrollTableProps {
+  data: Payroll[]
   enablePagination?: boolean
 }
 
-type LeaveStatus = 'requested' | 'approved' | 'rejected' | 'cancelled'
+type PayrollStatus = 'generated' | 'reviewed' | 'approved' | 'paid'
 
-const statusOptions: { value: LeaveStatus; label: string }[] = [
-  { value: 'requested', label: 'Requested' },
+const statusOptions: { value: PayrollStatus; label: string }[] = [
+  { value: 'generated', label: 'Generated' },
+  { value: 'reviewed', label: 'Reviewed' },
   { value: 'approved', label: 'Approved' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'paid', label: 'Paid' },
 ]
 
-export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTableProps) {
+export function PayrollTable({ data, enablePagination = true }: PayrollTableProps) {
   const [updatingStatus, setUpdatingStatus] = React.useState<number | null>(null)
 
-  const updateLeaveStatus = async (leaveId: number, newStatus: LeaveStatus) => {
-    setUpdatingStatus(leaveId)
+  const updatePayrollStatus = async (payrollId: number, newStatus: PayrollStatus) => {
+    setUpdatingStatus(payrollId)
     try {
-      const response = await fetch(`/api/leaves/${leaveId}/status`, {
+      const response = await fetch(`/api/payroll/${payrollId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTablePr
       // Refresh the page to show updated data
       window.location.reload()
     } catch (error) {
-      console.error('Error updating leave status:', error)
+      console.error('Error updating payroll status:', error)
       alert('Failed to update status. Please try again.')
     } finally {
       setUpdatingStatus(null)
@@ -62,60 +62,86 @@ export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTablePr
     switch (status) {
       case 'approved':
         return 'default'
-      case 'rejected':
-        return 'destructive'
-      case 'cancelled':
+      case 'paid':
         return 'secondary'
+      case 'reviewed':
+        return 'outline'
       default:
         return 'outline'
     }
   }
+
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (!amount) return '₺0.00'
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency',
+      currency: 'TRY',
+    }).format(amount)
+  }
+
+  const formatPeriod = (period: { month?: string; year?: number }) => {
+    if (!period?.month || !period?.year) return '-'
+    const monthNames = {
+      '01': 'Jan',
+      '02': 'Feb',
+      '03': 'Mar',
+      '04': 'Apr',
+      '05': 'May',
+      '06': 'Jun',
+      '07': 'Jul',
+      '08': 'Aug',
+      '09': 'Sep',
+      '10': 'Oct',
+      '11': 'Nov',
+      '12': 'Dec',
+    }
+    return `${monthNames[period.month as keyof typeof monthNames]} ${period.year}`
+  }
+
   const columns = [
     {
-      key: 'user' as keyof LeaveDay,
-      header: 'Applicant',
-      render: (value: unknown, item: LeaveDay) => {
-        const user = item.user
-        return typeof user === 'object' && user !== null && 'fullName' in user
-          ? (user as User).fullName
-          : user || '-'
+      key: 'employee' as keyof Payroll,
+      header: 'Employee',
+      render: (value: unknown, item: Payroll) => {
+        const employee = item.employee
+        return typeof employee === 'object' && employee !== null && 'fullName' in employee
+          ? (employee as User).fullName
+          : employee || '-'
       },
     },
     {
-      key: 'type' as keyof LeaveDay,
-      header: 'Type',
-      render: (value: unknown) => (
-        <Badge variant="default" className="capitalize">
-          {String(value)}
-        </Badge>
-      ),
+      key: 'period' as keyof Payroll,
+      header: 'Period',
+      render: (value: unknown, item: Payroll) => formatPeriod(item.period || {}),
     },
     {
-      key: 'startDate' as keyof LeaveDay,
-      header: 'Start Date',
-      render: (value: unknown) => {
-        const date = value as string
-        return date ? new Date(date).toLocaleDateString() : '-'
+      key: 'workDays' as keyof Payroll,
+      header: 'Work Days',
+      render: (value: unknown, item: Payroll) => {
+        const workDays = item.workDays
+        if (!workDays) return '-'
+        return `${workDays.daysWorked || 0}/${workDays.totalWorkingDays || 0}`
       },
     },
     {
-      key: 'endDate' as keyof LeaveDay,
-      header: 'End Date',
-      render: (value: unknown) => {
-        const date = value as string
-        return date ? new Date(date).toLocaleDateString() : '-'
+      key: 'grossPay' as keyof Payroll,
+      header: 'Gross Pay',
+      render: (value: unknown, item: Payroll) => {
+        return formatCurrency(item.calculations?.grossPay)
       },
     },
     {
-      key: 'totalDays' as keyof LeaveDay,
-      header: 'Days',
-      render: (value: unknown) => String(value || '-'),
+      key: 'netPay' as keyof Payroll,
+      header: 'Net Pay',
+      render: (value: unknown, item: Payroll) => {
+        return formatCurrency(item.calculations?.netPay)
+      },
     },
     {
-      key: 'status' as keyof LeaveDay,
+      key: 'status' as keyof Payroll,
       header: 'Status',
-      render: (value: unknown, item: LeaveDay) => {
-        const currentStatus = String(value) as LeaveStatus
+      render: (value: unknown, item: Payroll) => {
+        const currentStatus = String(value) as PayrollStatus
         const isUpdating = updatingStatus === Number(item.id)
 
         return (
@@ -140,7 +166,7 @@ export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTablePr
               {statusOptions.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => updateLeaveStatus(Number(item.id), option.value)}
+                  onClick={() => updatePayrollStatus(Number(item.id), option.value)}
                   className={`cursor-pointer capitalize ${option.value === currentStatus ? 'bg-accent' : ''}`}
                   disabled={option.value === currentStatus || isUpdating}
                 >
@@ -154,17 +180,17 @@ export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTablePr
     },
   ]
 
-  const actionColumn = (item: LeaveDay) => (
-    <Link href={`/leaves/${item.id}/edit`} className="flex-1">
+  const actionColumn = (item: Payroll) => (
+    <Link href={`/payroll/${item.id}/edit`} className="flex-1">
       <Button variant="outline" className="w-full">
-        Edit Leave
+        Edit Payroll
       </Button>
     </Link>
   )
 
   return (
     <div className="space-y-4">
-      <DataTable<LeaveDay>
+      <DataTable<Payroll>
         data={data.map((item) => ({
           ...item,
           id: Number(item.id),

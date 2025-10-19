@@ -7,6 +7,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconCreditCard,
 } from '@tabler/icons-react'
 
 import { NavMain } from '@/components/nav-main'
@@ -45,6 +46,11 @@ const data = {
       title: 'Leaves',
       url: '/leaves',
       icon: IconUsers,
+    },
+    {
+      title: 'Payroll',
+      url: '/payroll',
+      icon: IconCreditCard,
     },
   ],
   // navClouds: [

@@ -4,14 +4,8 @@ export const UserFormSchema = z
   .object({
     email: z.string().min(1, 'Please enter a valid email address'),
     username: z.string().min(1, 'Username is required'),
-    password: z
-      .string()
-      .min(6, 'Password must be at least 6 characters long')
-      .optional(),
-    confirmPassword: z
-      .string()
-      .min(6, 'Confirm password is required')
-      .optional(),
+    password: z.string().min(6, 'Password must be at least 6 characters long').optional(),
+    confirmPassword: z.string().min(6, 'Confirm password is required').optional(),
     fullName: z.string().min(1, 'Full name is required'),
     photo: z
       .custom<File | string | null>((v) => v === null || v instanceof File || typeof v === 'string')
@@ -44,6 +38,20 @@ export const UserFormSchema = z
     identificationNumber: z.string().optional().default(''),
     workPermitExpiry: z.string().optional(),
     address: z.string().optional().default('Write the address here...'),
+    // Employment fields
+    baseSalary: z.coerce.number().min(0, 'Base salary must be a positive number').optional(),
+    workType: z.enum(['fulltime', 'parttime', 'contract'] as const).optional(),
+    // Default Allowances
+    transportAllowance: z.coerce.number().min(0).default(0),
+    mealAllowance: z.coerce.number().min(0).default(0),
+    housingAllowance: z.coerce.number().min(0).default(0),
+    otherAllowance: z.coerce.number().min(0).default(0),
+    // Default Deductions
+    taxRate: z.coerce.number().min(0).max(100, 'Tax rate cannot exceed 100%').optional(),
+    insuranceDeduction: z.coerce.number().min(0).default(0),
+    pensionDeduction: z.coerce.number().min(0).default(0),
+    loanDeduction: z.coerce.number().min(0).default(0),
+    otherDeduction: z.coerce.number().min(0).default(0),
   })
   .refine(
     (data) => {
@@ -64,13 +72,25 @@ export const UserFormSchema = z
     const hasConfirm = typeof data.confirmPassword === 'string' && data.confirmPassword.length > 0
     if (hasPwd || hasConfirm) {
       if (!hasPwd) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Password is required' })
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['password'],
+          message: 'Password is required',
+        })
       }
       if (!hasConfirm) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['confirmPassword'], message: 'Confirm your password' })
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['confirmPassword'],
+          message: 'Confirm your password',
+        })
       }
       if (hasPwd && hasConfirm && data.password !== data.confirmPassword) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['confirmPassword'], message: 'Passwords do not match' })
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['confirmPassword'],
+          message: 'Passwords do not match',
+        })
       }
     }
   })

@@ -17,7 +17,12 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
 
   try {
     const item = await payload.findByID({ collection: 'inventory', id, depth: 2, user })
-    const userResult = await payload.find({ collection: 'users', limit: 100, sort: 'fullName', user })
+    const userResult = await payload.find({
+      collection: 'users',
+      limit: 100,
+      sort: 'fullName',
+      user,
+    })
 
     const handleUpdate = async (formData: FormData) => {
       'use server'
@@ -42,7 +47,9 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
         .filter((n) => !Number.isNaN(n))
 
       // Upload new images
-      const imageFiles = formData.getAll('image').filter((f): f is File => f instanceof File && f.size > 0)
+      const imageFiles = formData
+        .getAll('image')
+        .filter((f): f is File => f instanceof File && f.size > 0)
       const newIds: number[] = []
       for (const file of imageFiles) {
         const buffer = Buffer.from(await file.arrayBuffer())
@@ -62,7 +69,14 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
         status,
         image: [...keptIds, ...newIds],
       }
-      if (holder) data.holder = parseInt(holder)
+      if (holder && holder.trim() !== '') {
+        const holderId = parseInt(holder)
+        if (!isNaN(holderId)) {
+          data.holder = holderId
+        }
+      } else {
+        data.holder = null
+      }
       if (purchaseDate) data.purchaseDate = purchaseDate
       else data.purchaseDate = null
       if (warrantyExpiry) data.warrantyExpiry = warrantyExpiry
@@ -77,10 +91,10 @@ export default async function EditInventoryPage({ params }: EditInventoryPagePro
       <>
         <SetBreadcrumbLabel label={item.itemType} />
         <InventoryForm
-        mode="edit"
-        initialData={item}
-        formAction={handleUpdate}
-        holders={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
+          mode="edit"
+          initialData={item}
+          formAction={handleUpdate}
+          holders={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
         />
       </>
     )

@@ -3,7 +3,13 @@
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import type { Inventory, User } from '@/payload-types'
 import Link from 'next/link'
@@ -16,11 +22,28 @@ interface InventoryDrawerProps {
 export function InventoryDrawer({ item }: InventoryDrawerProps) {
   const [status, setStatus] = React.useState(item.status)
   const [holderId, setHolderId] = React.useState<string>(
-    typeof item.holder === 'object' && item.holder ? String((item.holder as any).id) : item.holder ? String(item.holder) : ''
+    typeof item.holder === 'object' && item.holder
+      ? String((item.holder as any).id)
+      : item.holder
+        ? String(item.holder)
+        : '',
   )
   const [holders, setHolders] = React.useState<Array<{ value: string; label: string }>>([])
   const [holderQuery, setHolderQuery] = React.useState('')
   const [saving, setSaving] = React.useState(false)
+
+  // Get current holder name for display
+  const currentHolderName = React.useMemo(() => {
+    if (typeof item.holder === 'object' && item.holder !== null && 'fullName' in item.holder) {
+      return (item.holder as User).fullName
+    }
+    // If holderId exists but holder is just an ID, find it in the holders list
+    if (holderId && holders.length > 0) {
+      const holderOption = holders.find((h) => h.value === holderId)
+      return holderOption ? holderOption.label : 'Unknown User'
+    }
+    return 'Unassigned'
+  }, [item.holder, holderId, holders])
 
   React.useEffect(() => {
     // Fetch user options for holder select
@@ -52,11 +75,6 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
     }
   }, [status])
 
-  const holder =
-    typeof item.holder === 'object' && item.holder !== null && 'fullName' in item.holder
-      ? (item.holder as User ).fullName
-      : item.holder || 'Unassigned'
-
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -72,9 +90,7 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
 
         <div>
           <h4 className="text-sm font-medium text-muted-foreground">Serial Number</h4>
-          <p className="font-mono text-sm py-1 rounded">
-            {item.serialNumber || 'N/A'}
-          </p>
+          <p className="font-mono text-sm py-1 rounded">{item.serialNumber || 'N/A'}</p>
         </div>
 
         <div>
@@ -96,12 +112,9 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium text-muted-foreground">Current Holder</h4>
-          <Select
-            value={holderId}
-            onValueChange={(v) => setHolderId(v === '__none__' ? '' : v)}
-          >
+          <Select value={holderId} onValueChange={(v) => setHolderId(v === '__none__' ? '' : v)}>
             <SelectTrigger>
-              <SelectValue placeholder="Unassigned" />
+              <SelectValue placeholder={currentHolderName} />
             </SelectTrigger>
             <SelectContent>
               <div className="p-2">
@@ -120,10 +133,10 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
                     : true,
                 )
                 .map((h) => (
-                <SelectItem key={h.value} value={h.value}>
-                  {h.label}
-                </SelectItem>
-              ))}
+                  <SelectItem key={h.value} value={h.value}>
+                    {h.label}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -160,7 +173,12 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
               {item.image.map((img: any, idx: number) => {
                 const url = typeof img === 'object' && img && 'url' in img ? img.url : undefined
                 return url ? (
-                  <img key={idx} src={url as string} alt="Inventory image" className="h-24 w-full object-cover rounded" />
+                  <img
+                    key={idx}
+                    src={url as string}
+                    alt="Inventory image"
+                    className="h-24 w-full object-cover rounded"
+                  />
                 ) : null
               })}
             </div>
@@ -176,8 +194,12 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
             Edit Item
           </Button>
         </Link>
-        <Button onClick={handleSaveInline} disabled={saving || (status === 'inUse' && !holderId)} className="flex-1">
-          {saving ? 'Saving...' : 'Save' }
+        <Button
+          onClick={handleSaveInline}
+          disabled={saving || (status === 'inUse' && !holderId)}
+          className="flex-1"
+        >
+          {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
     </div>

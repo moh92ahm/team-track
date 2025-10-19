@@ -90,11 +90,18 @@ export function UserTable({ data }: UserTableProps) {
   ]
 
   const actionColumn = (user: User) => (
-    <Link href={`/users/${user.id}`}>
-      <Button variant="outline" size="sm">
-        View
-      </Button>
-    </Link>
+    <div className="flex gap-2">
+      <Link href={`/users/${user.id}/edit`}>
+        <Button variant="outline" size="sm">
+          Edit
+        </Button>
+      </Link>
+      <Link href={`/users/${user.id}`}>
+        <Button variant="secondary" size="sm">
+          View
+        </Button>
+      </Link>
+    </div>
   )
 
   return <DataTable data={data} columns={columns} actionColumn={actionColumn} />

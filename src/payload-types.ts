@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     inventory: Inventory;
     'leave-days': LeaveDay;
+    payroll: Payroll;
     roles: Role;
     departments: Department;
     media: Media;
@@ -82,6 +83,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     inventory: InventorySelect<false> | InventorySelect<true>;
     'leave-days': LeaveDaysSelect<false> | LeaveDaysSelect<true>;
+    payroll: PayrollSelect<false> | PayrollSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -156,6 +158,23 @@ export interface User {
   documents?: (number | Media)[] | null;
   isActive?: boolean | null;
   joinedAt?: string | null;
+  employment?: {
+    baseSalary?: number | null;
+    workType?: ('fulltime' | 'parttime' | 'contract') | null;
+    defaultAllowances?: {
+      transport?: number | null;
+      meal?: number | null;
+      housing?: number | null;
+      other?: number | null;
+    };
+    defaultDeductions?: {
+      taxRate?: number | null;
+      insurance?: number | null;
+      pension?: number | null;
+      loan?: number | null;
+      other?: number | null;
+    };
+  };
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -254,6 +273,37 @@ export interface LeaveDay {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payroll".
+ */
+export interface Payroll {
+  id: number;
+  employee: number | User;
+  period: {
+    month: '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12';
+    year: number;
+  };
+  workDays?: {
+    totalWorkingDays?: number | null;
+    daysWorked?: number | null;
+    leaveDays?: number | null;
+  };
+  adjustments?: {
+    bonusAmount?: number | null;
+    deductionAmount?: number | null;
+    overtimePay?: number | null;
+    adjustmentNote?: string | null;
+  };
+  calculations?: {
+    grossPay?: number | null;
+    totalDeductions?: number | null;
+    netPay?: number | null;
+  };
+  status?: ('generated' | 'reviewed' | 'approved' | 'paid') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -270,6 +320,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'leave-days';
         value: number | LeaveDay;
+      } | null)
+    | ({
+        relationTo: 'payroll';
+        value: number | Payroll;
       } | null)
     | ({
         relationTo: 'roles';
@@ -347,6 +401,29 @@ export interface UsersSelect<T extends boolean = true> {
   documents?: T;
   isActive?: T;
   joinedAt?: T;
+  employment?:
+    | T
+    | {
+        baseSalary?: T;
+        workType?: T;
+        defaultAllowances?:
+          | T
+          | {
+              transport?: T;
+              meal?: T;
+              housing?: T;
+              other?: T;
+            };
+        defaultDeductions?:
+          | T
+          | {
+              taxRate?: T;
+              insurance?: T;
+              pension?: T;
+              loan?: T;
+              other?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -395,6 +472,44 @@ export interface LeaveDaysSelect<T extends boolean = true> {
   status?: T;
   reason?: T;
   note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payroll_select".
+ */
+export interface PayrollSelect<T extends boolean = true> {
+  employee?: T;
+  period?:
+    | T
+    | {
+        month?: T;
+        year?: T;
+      };
+  workDays?:
+    | T
+    | {
+        totalWorkingDays?: T;
+        daysWorked?: T;
+        leaveDays?: T;
+      };
+  adjustments?:
+    | T
+    | {
+        bonusAmount?: T;
+        deductionAmount?: T;
+        overtimePay?: T;
+        adjustmentNote?: T;
+      };
+  calculations?:
+    | T
+    | {
+        grossPay?: T;
+        totalDeductions?: T;
+        netPay?: T;
+      };
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

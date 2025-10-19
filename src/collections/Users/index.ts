@@ -19,7 +19,7 @@ export const Users: CollectionConfig = {
     loginWithUsername: {
       requireEmail: true,
       allowEmailLogin: true,
-    }
+    },
   },
   fields: [
     {
@@ -41,7 +41,7 @@ export const Users: CollectionConfig = {
     {
       name: 'role',
       type: 'relationship',
-      relationTo: 'roles'
+      relationTo: 'roles',
     },
     {
       name: 'jobTitle',
@@ -70,18 +70,22 @@ export const Users: CollectionConfig = {
       name: 'employmentType',
       type: 'select',
       options: [
-       {
-        label: 'Citizen', value: 'citizen'
-       },
-       {
-        label: 'Work Permit', value: 'workPermit'
-       },
-       {
-        label: 'Residence Permit', value: 'residencePermit'
-       },
-       {
-         label: 'Other', value: 'other'
-       },
+        {
+          label: 'Citizen',
+          value: 'citizen',
+        },
+        {
+          label: 'Work Permit',
+          value: 'workPermit',
+        },
+        {
+          label: 'Residence Permit',
+          value: 'residencePermit',
+        },
+        {
+          label: 'Other',
+          value: 'other',
+        },
       ],
       defaultValue: 'other',
       required: true,
@@ -133,6 +137,49 @@ export const Users: CollectionConfig = {
         ],
       },
     },
-  ], 
+    // Payroll details
+    {
+      name: 'employment',
+      type: 'group',
+      fields: [
+        {
+          name: 'baseSalary',
+          type: 'number',
+          label: 'Monthly Base Salary',
+        },
+        {
+          name: 'workType',
+          type: 'select',
+          label: 'Work Type',
+          options: [
+            { label: 'Full-time', value: 'fulltime' },
+            { label: 'Part-time', value: 'parttime' },
+            { label: 'Contract', value: 'contract' },
+          ],
+        },
+        {
+          name: 'defaultAllowances',
+          type: 'group',
+          fields: [
+            { name: 'transport', type: 'number', defaultValue: 0 },
+            { name: 'meal', type: 'number', defaultValue: 0 },
+            { name: 'housing', type: 'number', defaultValue: 0 },
+            { name: 'other', type: 'number', defaultValue: 0 },
+          ],
+        },
+        {
+          name: 'defaultDeductions',
+          type: 'group',
+          fields: [
+            { name: 'taxRate', type: 'number', label: 'Tax Rate %' },
+            { name: 'insurance', type: 'number', defaultValue: 0 },
+            { name: 'pension', type: 'number', defaultValue: 0 },
+            { name: 'loan', type: 'number', defaultValue: 0 },
+            { name: 'other', type: 'number', defaultValue: 0 },
+          ],
+        },
+      ],
+    },
+  ],
   timestamps: true,
 }
