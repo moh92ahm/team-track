@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -54,8 +55,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>Enter your username or email to login to your account</CardDescription>
+          <CardTitle>
+            <div className='flex flex-col gap-2 items-center mb-2'>
+              <Image src="/brand/Team-Track-Logo.png" alt="Team Track" width={38} height={38} />
+              <span className="text-base font-semibold">Team Track</span>
+            </div>
+          </CardTitle>
+          <CardDescription>
+            <h2 className='font-bold text-base'>Login to your account</h2>
+            <p>Enter your username or email to login to your account</p>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -77,12 +86,12 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
+                  {/* <a
                     href="#"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </a>
+                  </a> */}
                 </div>
                 <Input
                   id="password"
