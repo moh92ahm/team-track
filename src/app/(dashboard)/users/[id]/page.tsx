@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { ProfileLayout } from '@/components/user/profile-layout'
-import type { Inventory } from '@/payload-types'
+import type { Inventory, LeaveDay, Payroll } from '@/payload-types'
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -37,7 +37,42 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       user: currentUser,
     })
 
-    return <ProfileLayout user={user} inventory={invRes.docs as Inventory[]} />
+    // Fetch leave records for this user
+    const leavesRes = await payload.find({
+      collection: 'leave-days',
+      depth: 2,
+      limit: 100,
+      where: {
+        user: {
+          equals: Number(user.id),
+        },
+      },
+      sort: '-createdAt', // Show most recent first
+      user: currentUser,
+    })
+
+    // Fetch payroll records for this user
+    const payrollRes = await payload.find({
+      collection: 'payroll',
+      depth: 2,
+      limit: 100,
+      where: {
+        employee: {
+          equals: Number(user.id),
+        },
+      },
+      sort: '-createdAt', // Show most recent first
+      user: currentUser,
+    })
+
+    return (
+      <ProfileLayout
+        user={user}
+        inventory={invRes.docs as Inventory[]}
+        leaves={leavesRes.docs as LeaveDay[]}
+        payrollHistory={payrollRes.docs as Payroll[]}
+      />
+    )
   } catch (error) {
     console.error('Error fetching user:', error)
     notFound()

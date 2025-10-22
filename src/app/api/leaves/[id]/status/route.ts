@@ -27,6 +27,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       )
     }
 
+    // Get current leave to check existing status
+    const currentLeave = await payload.findByID({
+      collection: 'leave-days',
+      id,
+      user,
+    })
+
+    // Check if current status is final (cannot be changed)
+    const finalStatuses = ['approved', 'rejected', 'cancelled']
+    if (currentLeave.status && finalStatuses.includes(currentLeave.status)) {
+      return NextResponse.json(
+        { error: 'Cannot change status. Leave request has already been processed.' },
+        { status: 400 },
+      )
+    }
+
     // Update the leave status
     const updatedLeave = await payload.update({
       collection: 'leave-days',

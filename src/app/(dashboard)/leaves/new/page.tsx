@@ -28,7 +28,7 @@ export default async function NewLeavePage() {
     const type = String(formData.get('type') || '')
     const startDate = String(formData.get('startDate') || '')
     const endDate = String(formData.get('endDate') || '')
-    const status = String(formData.get('status') || 'requested')
+    const status = 'requested' // Always start with requested status
     const reason = String(formData.get('reason') || '')
     const note = String(formData.get('note') || '')
 
@@ -63,6 +63,7 @@ export default async function NewLeavePage() {
         mode="create"
         formAction={handleCreateLeave}
         users={userResult.docs.map((u) => ({ value: String(u.id), label: u.fullName }))}
+        showStatusField={false} // Regular users can't set status - always starts as "requested"
       />
     </>
   )

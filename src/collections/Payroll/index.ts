@@ -52,29 +52,6 @@ export const Payroll: CollectionConfig = {
         },
       ],
     },
-    // Working days - auto-calculated from attendance/leaves
-    {
-      name: 'workDays',
-      type: 'group',
-      fields: [
-        {
-          name: 'totalWorkingDays',
-          type: 'number',
-          defaultValue: 22,
-          admin: { readOnly: true },
-        },
-        {
-          name: 'daysWorked',
-          type: 'number',
-          admin: { readOnly: true }, // Auto-calculated
-        },
-        {
-          name: 'leaveDays',
-          type: 'number',
-          admin: { readOnly: true }, // From leave system
-        },
-      ],
-    },
     // Override fields (for exceptions only)
     {
       name: 'adjustments',
@@ -125,6 +102,7 @@ export const Payroll: CollectionConfig = {
         { label: 'Reviewed', value: 'reviewed' },
         { label: 'Approved', value: 'approved' },
         { label: 'Paid', value: 'paid' },
+        { label: 'Cancelled', value: 'cancelled' },
       ],
     },
   ],
@@ -141,7 +119,27 @@ export const Payroll: CollectionConfig = {
             })
 
             if (employee && employee.employment) {
-              const { baseSalary, defaultAllowances, defaultDeductions } = employee.employment
+              // employment may have optional fields; provide defaults and a type assertion
+              const {
+                baseSalary,
+                defaultAllowances = {},
+                defaultDeductions = {},
+              } = employee.employment as {
+                baseSalary?: number | null
+                defaultAllowances?: {
+                  transport?: number
+                  meal?: number
+                  housing?: number
+                  other?: number
+                }
+                defaultDeductions?: {
+                  insurance?: number
+                  pension?: number
+                  loan?: number
+                  other?: number
+                  taxRate?: number
+                }
+              }
               const { workDays, adjustments } = data
 
               if (baseSalary && workDays) {

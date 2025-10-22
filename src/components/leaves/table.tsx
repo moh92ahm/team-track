@@ -118,6 +118,19 @@ export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTablePr
         const currentStatus = String(value) as LeaveStatus
         const isUpdating = updatingStatus === Number(item.id)
 
+        // Final statuses that cannot be changed
+        const isFinalStatus = ['approved', 'rejected', 'cancelled'].includes(currentStatus)
+
+        // If it's a final status, just show the badge without dropdown
+        if (isFinalStatus) {
+          return (
+            <Badge variant={getStatusVariant(currentStatus)} className="capitalize">
+              {currentStatus}
+            </Badge>
+          )
+        }
+
+        // Only show dropdown for "requested" status
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

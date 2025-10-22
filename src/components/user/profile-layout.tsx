@@ -9,18 +9,26 @@ import { InfoCard } from './info-card'
 import { PayrollCard } from './payroll-card'
 import { UserStatusToggle } from './status-toggle'
 import { updateUserStatus } from '@/lib/actions/user'
-import type { User, Inventory } from '@/payload-types'
+import type { User, Inventory, LeaveDay, Payroll } from '@/payload-types'
 import { Card, CardContent } from '../ui/card'
 import { SetBreadcrumbLabel } from '@/components/set-breadcrumb-label'
 import { InventoryCard } from './inventory-card'
 import { EmploymentStatusCard } from './employment-status'
+import { LeavesCard } from './leaves-card'
 
 interface ProfileLayoutProps {
   user: User
   inventory?: Inventory[]
+  leaves?: LeaveDay[]
+  payrollHistory?: Payroll[]
 }
 
-export function ProfileLayout({ user, inventory = [] }: ProfileLayoutProps) {
+export function ProfileLayout({
+  user,
+  inventory = [],
+  leaves = [],
+  payrollHistory = [],
+}: ProfileLayoutProps) {
   const handleStatusChange = async (isActive: boolean) => {
     await updateUserStatus(String(user.id), isActive)
   }
@@ -63,10 +71,11 @@ export function ProfileLayout({ user, inventory = [] }: ProfileLayoutProps) {
               <ProfileCard user={user} />
               {/* Contact Information Card */}
               <InfoCard user={user} />
-              {/* Payroll Information Card */}
-              <PayrollCard user={user} />
               <EmploymentStatusCard user={user} />
+              {/* Payroll Information Card */}
+              <PayrollCard user={user} payrollHistory={payrollHistory} />
 
+              <LeavesCard leaves={leaves} />
               <InventoryCard inventory={inventory} />
             </div>
           </CardContent>

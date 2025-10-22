@@ -19,13 +19,14 @@ interface PayrollTableProps {
   enablePagination?: boolean
 }
 
-type PayrollStatus = 'generated' | 'reviewed' | 'approved' | 'paid'
+type PayrollStatus = 'generated' | 'reviewed' | 'approved' | 'paid' | 'cancelled'
 
 const statusOptions: { value: PayrollStatus; label: string }[] = [
   { value: 'generated', label: 'Generated' },
   { value: 'reviewed', label: 'Reviewed' },
   { value: 'approved', label: 'Approved' },
   { value: 'paid', label: 'Paid' },
+  { value: 'cancelled', label: 'Cancelled' },
 ]
 
 export function PayrollTable({ data, enablePagination = true }: PayrollTableProps) {
@@ -66,6 +67,8 @@ export function PayrollTable({ data, enablePagination = true }: PayrollTableProp
         return 'secondary'
       case 'reviewed':
         return 'outline'
+      case 'cancelled':
+        return 'destructive'
       default:
         return 'outline'
     }

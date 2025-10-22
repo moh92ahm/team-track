@@ -2,18 +2,19 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputField } from '@/components/form/input-field'
 import { SelectField } from '@/components/form/select-field'
-import { useForm, Controller, useWatch } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 
 const InventorySchemaBase = z.object({
-  itemType: z.enum(['laptop', 'phone', 'accessory', 'other'] as const, {
+  itemType: z.enum(['laptop', 'phone', 'accessory', 'simCard', 'other'] as const, {
     error: 'Item type is required',
   }),
   holder: z.string().optional(),
@@ -149,6 +150,7 @@ export function InventoryForm({
     { value: 'laptop', label: 'Laptop' },
     { value: 'phone', label: 'Phone' },
     { value: 'accessory', label: 'Accessory' },
+    { value: 'simCard', label: 'Sim Card' },
     { value: 'other', label: 'Other' },
   ]
 
@@ -280,13 +282,14 @@ export function InventoryForm({
                         Existing images (click X to remove)
                       </p>
                       <div className="flex flex-row gap-4">
-                        {existingImages.map((img, idx) => (
+                        {existingImages.map((img) => (
                           <div key={img.id} className="relative group">
-                            <input type="hidden" name="keepImageIds" value={String(img.id)} />
                             {img.url ? (
-                              <img
+                              <Image
                                 src={img.url}
                                 alt="inventory"
+                                width={128}
+                                height={128}
                                 className="h-32 w-32 object-cover rounded"
                               />
                             ) : (
@@ -322,10 +325,13 @@ export function InventoryForm({
                       <div className="flex flex-row gap-4">
                         {newFiles.map((nf, idx) => (
                           <div key={idx} className="relative group">
-                            <img
+                            <Image
                               src={nf.preview}
                               alt="preview"
+                              width={128}
+                              height={128}
                               className="h-32 w-32 object-cover rounded"
+                              unoptimized
                             />
                             <button
                               type="button"

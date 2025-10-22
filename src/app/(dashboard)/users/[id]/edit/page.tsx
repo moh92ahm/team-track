@@ -120,34 +120,12 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
 
       // Employment fields
       const baseSalary = formData.get('baseSalary')
-      const workType = String(formData.get('workType') || '')
-      const transportAllowance = formData.get('transportAllowance')
-      const mealAllowance = formData.get('mealAllowance')
-      const housingAllowance = formData.get('housingAllowance')
-      const otherAllowance = formData.get('otherAllowance')
-      const taxRate = formData.get('taxRate')
-      const insuranceDeduction = formData.get('insuranceDeduction')
-      const pensionDeduction = formData.get('pensionDeduction')
-      const loanDeduction = formData.get('loanDeduction')
-      const otherDeduction = formData.get('otherDeduction')
+      const paymentType = String(formData.get('paymentType') || 'bankTransfer')
 
       // Add employment data - always include the structure to allow clearing fields
       userData.employment = {
         ...(baseSalary && { baseSalary: parseFloat(String(baseSalary)) }),
-        ...(workType && { workType }),
-        defaultAllowances: {
-          transport: transportAllowance ? parseFloat(String(transportAllowance)) : 0,
-          meal: mealAllowance ? parseFloat(String(mealAllowance)) : 0,
-          housing: housingAllowance ? parseFloat(String(housingAllowance)) : 0,
-          other: otherAllowance ? parseFloat(String(otherAllowance)) : 0,
-        },
-        defaultDeductions: {
-          ...(taxRate && { taxRate: parseFloat(String(taxRate)) }),
-          insurance: insuranceDeduction ? parseFloat(String(insuranceDeduction)) : 0,
-          pension: pensionDeduction ? parseFloat(String(pensionDeduction)) : 0,
-          loan: loanDeduction ? parseFloat(String(loanDeduction)) : 0,
-          other: otherDeduction ? parseFloat(String(otherDeduction)) : 0,
-        },
+        paymentType,
       }
 
       await payload.update({

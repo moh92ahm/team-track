@@ -56,13 +56,13 @@ export function UserForm({
       typeof initialData?.department === 'object' &&
       initialData.department &&
       'id' in initialData.department
-        ? String((initialData.department as any).id)
+        ? String((initialData.department).id)
         : initialData?.department
           ? String(initialData.department)
           : undefined,
     role:
       typeof initialData?.role === 'object' && initialData.role && 'id' in initialData.role
-        ? String((initialData.role as any).id)
+        ? String((initialData.role).id)
         : initialData?.role
           ? String(initialData.role)
           : undefined,
@@ -71,13 +71,13 @@ export function UserForm({
     primaryPhone: initialData?.primaryPhone || '',
     secondaryPhone: initialData?.secondaryPhone || '',
     secondaryEmail: initialData?.secondaryEmail || '',
-    employmentType: (initialData as any)?.employmentType || 'other',
-    nationality: (initialData as any)?.nationality || '',
-    identificationNumber: (initialData as any)?.identificationNumber || '',
-    workPermitExpiry: (initialData as any)?.workPermitExpiry
-      ? formatDateForInput((initialData as any).workPermitExpiry)
+    employmentType: (initialData)?.employmentType || 'other',
+    nationality: (initialData)?.nationality || '',
+    identificationNumber: (initialData)?.identificationNumber || '',
+    workPermitExpiry: (initialData)?.workPermitExpiry
+      ? formatDateForInput((initialData).workPermitExpiry)
       : undefined,
-    address: (initialData as any)?.address || '',
+    address: (initialData)?.address || '',
     documents: [],
     isActive: initialData?.isActive ?? true,
     joinedAt: initialData?.joinedAt
@@ -86,25 +86,14 @@ export function UserForm({
         ? formatDateForInput(new Date())
         : undefined,
     // Employment fields
-    baseSalary: (initialData as any)?.employment?.baseSalary || undefined,
-    workType: (initialData as any)?.employment?.workType || undefined,
-    // Default Allowances
-    transportAllowance: (initialData as any)?.employment?.defaultAllowances?.transport || 0,
-    mealAllowance: (initialData as any)?.employment?.defaultAllowances?.meal || 0,
-    housingAllowance: (initialData as any)?.employment?.defaultAllowances?.housing || 0,
-    otherAllowance: (initialData as any)?.employment?.defaultAllowances?.other || 0,
-    // Default Deductions
-    taxRate: (initialData as any)?.employment?.defaultDeductions?.taxRate || undefined,
-    insuranceDeduction: (initialData as any)?.employment?.defaultDeductions?.insurance || 0,
-    pensionDeduction: (initialData as any)?.employment?.defaultDeductions?.pension || 0,
-    loanDeduction: (initialData as any)?.employment?.defaultDeductions?.loan || 0,
-    otherDeduction: (initialData as any)?.employment?.defaultDeductions?.other || 0,
+    baseSalary: (initialData)?.employment?.baseSalary || undefined,
+    paymentType: (initialData)?.employment?.paymentType || 'bankTransfer',
   }
 
   const {
     register,
     control,
-    handleSubmit: rhfHandleSubmit,
+    // handleSubmit,
     trigger,
     watch,
     formState: { errors, isSubmitting: isFormSubmitting },
@@ -118,18 +107,18 @@ export function UserForm({
   // Watch employment type to conditionally show work permit expiry
   const employmentType = watch('employmentType')
 
-  const onValidSubmit: SubmitHandler<UserFormValues> = React.useCallback(
-    async (values) => {
-      if (!onSubmit) return
-      try {
-        await onSubmit(values)
-      } catch (error) {
-        console.error('Form submission error:', error)
-        alert(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
-      }
-    },
-    [onSubmit],
-  )
+  // const onValidSubmit: SubmitHandler<UserFormValues> = React.useCallback(
+  //   async (values) => {
+  //     if (!onSubmit) return
+  //     try {
+  //       await onSubmit(values)
+  //     } catch (error) {
+  //       console.error('Form submission error:', error)
+  //       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
+  //     }
+  //   },
+  //   [onSubmit],
+  // )
 
   const formRef = React.useRef<HTMLFormElement>(null)
   const [nativeSubmitting, setNativeSubmitting] = React.useState(false)
@@ -166,17 +155,14 @@ export function UserForm({
               const pwd = (watch('password') as string) || ''
               const cpwd = (watch('confirmPassword') as string) || ''
               if (!pwd) {
-                // eslint-disable-next-line no-alert
                 alert('Password is required')
                 return
               }
               if (!cpwd) {
-                // eslint-disable-next-line no-alert
                 alert('Confirm password is required')
                 return
               }
               if (pwd !== cpwd) {
-                // eslint-disable-next-line no-alert
                 alert('Passwords do not match')
                 return
               }
@@ -395,101 +381,16 @@ export function UserForm({
                     />
                     <SelectField
                       control={control}
-                      name={'workType'}
-                      label="Work Type"
-                      placeholder="Select work type"
+                      name={'paymentType'}
+                      label="Payment Type"
+                      placeholder="Select payment type"
                       options={[
-                        { label: 'Full-time', value: 'fulltime' },
-                        { label: 'Part-time', value: 'parttime' },
-                        { label: 'Contract', value: 'contract' },
+                        { label: 'Bank Transfer', value: 'bankTransfer' },
+                        { label: 'Cash', value: 'cash' },
+                        { label: 'Cheque', value: 'cheque' },
                       ]}
+                      error={errors.paymentType?.message as string | undefined}
                     />
-                  </div>
-
-                  {/* Default Allowances */}
-                  <div>
-                    <h4 className="text-md font-semibold mb-3">Default Allowances</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <InputField
-                        label="Transport Allowance"
-                        name={'transportAllowance'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.transportAllowance?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Meal Allowance"
-                        name={'mealAllowance'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.mealAllowance?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Housing Allowance"
-                        name={'housingAllowance'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.housingAllowance?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Other Allowance"
-                        name={'otherAllowance'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.otherAllowance?.message as string | undefined}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Default Deductions */}
-                  <div>
-                    <h4 className="text-md font-semibold mb-3">Default Deductions</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                      <InputField
-                        label="Tax Rate (%)"
-                        name={'taxRate'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0', max: '100' }}
-                        error={errors.taxRate?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Insurance Deduction"
-                        name={'insuranceDeduction'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.insuranceDeduction?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Pension Deduction"
-                        name={'pensionDeduction'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.pensionDeduction?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Loan Deduction"
-                        name={'loanDeduction'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.loanDeduction?.message as string | undefined}
-                      />
-                      <InputField
-                        label="Other Deduction"
-                        name={'otherDeduction'}
-                        register={register}
-                        type="number"
-                        inputProps={{ step: '0.01', min: '0' }}
-                        error={errors.otherDeduction?.message as string | undefined}
-                      />
-                    </div>
                   </div>
                 </div>
 

@@ -32,6 +32,10 @@ export const Inventory: CollectionConfig = {
           value: 'accessory',
         },
         {
+          label: 'Sim Card',
+          value: 'simCard',
+        },
+        {
           label: 'Other',
           value: 'other',
         },

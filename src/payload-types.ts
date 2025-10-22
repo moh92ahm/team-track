@@ -160,20 +160,7 @@ export interface User {
   joinedAt?: string | null;
   employment?: {
     baseSalary?: number | null;
-    workType?: ('fulltime' | 'parttime' | 'contract') | null;
-    defaultAllowances?: {
-      transport?: number | null;
-      meal?: number | null;
-      housing?: number | null;
-      other?: number | null;
-    };
-    defaultDeductions?: {
-      taxRate?: number | null;
-      insurance?: number | null;
-      pension?: number | null;
-      loan?: number | null;
-      other?: number | null;
-    };
+    paymentType?: ('bankTransfer' | 'cash' | 'cheque') | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -242,7 +229,7 @@ export interface Role {
  */
 export interface Inventory {
   id: number;
-  itemType: 'laptop' | 'phone' | 'accessory' | 'other';
+  itemType: 'laptop' | 'phone' | 'accessory' | 'simCard' | 'other';
   model: string;
   serialNumber: string;
   holder?: (number | null) | User;
@@ -282,11 +269,6 @@ export interface Payroll {
     month: '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12';
     year: number;
   };
-  workDays?: {
-    totalWorkingDays?: number | null;
-    daysWorked?: number | null;
-    leaveDays?: number | null;
-  };
   adjustments?: {
     bonusAmount?: number | null;
     deductionAmount?: number | null;
@@ -298,7 +280,7 @@ export interface Payroll {
     totalDeductions?: number | null;
     netPay?: number | null;
   };
-  status?: ('generated' | 'reviewed' | 'approved' | 'paid') | null;
+  status?: ('generated' | 'reviewed' | 'approved' | 'paid' | 'cancelled') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -405,24 +387,7 @@ export interface UsersSelect<T extends boolean = true> {
     | T
     | {
         baseSalary?: T;
-        workType?: T;
-        defaultAllowances?:
-          | T
-          | {
-              transport?: T;
-              meal?: T;
-              housing?: T;
-              other?: T;
-            };
-        defaultDeductions?:
-          | T
-          | {
-              taxRate?: T;
-              insurance?: T;
-              pension?: T;
-              loan?: T;
-              other?: T;
-            };
+        paymentType?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -486,13 +451,6 @@ export interface PayrollSelect<T extends boolean = true> {
     | {
         month?: T;
         year?: T;
-      };
-  workDays?:
-    | T
-    | {
-        totalWorkingDays?: T;
-        daysWorked?: T;
-        leaveDays?: T;
       };
   adjustments?:
     | T

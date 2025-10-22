@@ -40,18 +40,7 @@ export const UserFormSchema = z
     address: z.string().optional().default('Write the address here...'),
     // Employment fields
     baseSalary: z.coerce.number().min(0, 'Base salary must be a positive number').optional(),
-    workType: z.enum(['fulltime', 'parttime', 'contract'] as const).optional(),
-    // Default Allowances
-    transportAllowance: z.coerce.number().min(0).default(0),
-    mealAllowance: z.coerce.number().min(0).default(0),
-    housingAllowance: z.coerce.number().min(0).default(0),
-    otherAllowance: z.coerce.number().min(0).default(0),
-    // Default Deductions
-    taxRate: z.coerce.number().min(0).max(100, 'Tax rate cannot exceed 100%').optional(),
-    insuranceDeduction: z.coerce.number().min(0).default(0),
-    pensionDeduction: z.coerce.number().min(0).default(0),
-    loanDeduction: z.coerce.number().min(0).default(0),
-    otherDeduction: z.coerce.number().min(0).default(0),
+    paymentType: z.enum(['bankTransfer', 'cash', 'cheque'] as const).optional(),
   })
   .refine(
     (data) => {

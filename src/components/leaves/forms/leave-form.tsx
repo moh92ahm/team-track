@@ -54,6 +54,7 @@ interface LeaveDayFormProps {
   formAction?: (formData: FormData) => Promise<void>
   users: Option[]
   initialData?: Partial<import('@/payload-types').LeaveDay>
+  showStatusField?: boolean // For admin users only
 }
 
 export function LeaveDayForm({
@@ -62,6 +63,7 @@ export function LeaveDayForm({
   formAction,
   users,
   initialData,
+  showStatusField = false,
 }: LeaveDayFormProps) {
   const {
     register,
@@ -188,14 +190,20 @@ export function LeaveDayForm({
                   )}
                 </div>
 
-                <SelectField
-                  control={control}
-                  name={'status'}
-                  label="Status *"
-                  placeholder="Select status"
-                  options={statusOptions}
-                  error={errors.status?.message as string | undefined}
-                />
+                {showStatusField && (
+                  <SelectField
+                    control={control}
+                    name={'status'}
+                    label="Status *"
+                    placeholder="Select status"
+                    options={statusOptions}
+                    error={errors.status?.message as string | undefined}
+                  />
+                )}
+
+                {!showStatusField && (
+                  <input type="hidden" {...register('status')} value="requested" />
+                )}
 
                 <div className="md:col-span-2">
                   <label htmlFor="reason" className="px-1 text-sm font-medium text-foreground">

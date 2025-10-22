@@ -4,9 +4,8 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { InputField } from '@/components/form/input-field'
 import { SelectField } from '@/components/form/select-field'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, Save, X } from 'lucide-react'
@@ -25,7 +24,7 @@ const PayrollSchemaBase = z.object({
   deductionAmount: z.coerce.number().min(0, 'Deduction amount cannot be negative').optional(),
   overtimePay: z.coerce.number().min(0, 'Overtime pay cannot be negative').optional(),
   adjustmentNote: z.string().optional(),
-  status: z.enum(['generated', 'reviewed', 'approved', 'paid'] as const),
+  status: z.enum(['generated', 'reviewed', 'approved', 'paid', 'cancelled'] as const),
 })
 
 const PayrollSchema = PayrollSchemaBase.superRefine((val, ctx) => {
@@ -115,6 +114,7 @@ export function PayrollForm({
     { label: 'Reviewed', value: 'reviewed' },
     { label: 'Approved', value: 'approved' },
     { label: 'Paid', value: 'paid' },
+    { label: 'Cancelled', value: 'cancelled' },
   ]
 
   const monthOptions: Option[] = [

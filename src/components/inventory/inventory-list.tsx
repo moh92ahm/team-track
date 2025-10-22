@@ -19,7 +19,7 @@ export function InventoryList({ data }: InventoryListProps) {
   // Single-select filter: 'all' or one specific status
   const [statusFilter, setStatusFilter] = React.useState<'all' | 'inUse' | 'inStock' | 'needsRepair' | 'underRepair'>('all')
   // Single-select item type filter
-  const [typeFilter, setTypeFilter] = React.useState<'all' | 'laptop' | 'phone' | 'accessory' | 'other'>('all')
+  const [typeFilter, setTypeFilter] = React.useState<'all' | 'laptop' | 'phone' | 'accessory' | 'simCard' | 'other'>('all')
 
   React.useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 300)
@@ -65,6 +65,7 @@ export function InventoryList({ data }: InventoryListProps) {
               { key: 'laptop', label: 'Laptop' },
               { key: 'phone', label: 'Phone' },
               { key: 'accessory', label: 'Accessory' },
+              { key: 'simCard', label: 'Sim Card' },
               { key: 'other', label: 'Other' },
             ] as const).map(({ key, label }) => (
               <Button
