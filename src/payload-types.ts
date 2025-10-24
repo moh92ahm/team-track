@@ -71,6 +71,7 @@ export interface Config {
     inventory: Inventory;
     'leave-days': LeaveDay;
     payroll: Payroll;
+    'payroll-settings': PayrollSetting;
     roles: Role;
     departments: Department;
     media: Media;
@@ -84,6 +85,7 @@ export interface Config {
     inventory: InventorySelect<false> | InventorySelect<true>;
     'leave-days': LeaveDaysSelect<false> | LeaveDaysSelect<true>;
     payroll: PayrollSelect<false> | PayrollSelect<true>;
+    'payroll-settings': PayrollSettingsSelect<false> | PayrollSettingsSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -143,7 +145,10 @@ export interface User {
   id: number;
   fullName: string;
   photo?: (number | null) | Media;
-  department?: (number | null) | Department;
+  /**
+   * Assign multiple departments (e.g., Sales + English, or just HR)
+   */
+  departments?: (number | Department)[] | null;
   role?: (number | null) | Role;
   jobTitle?: string | null;
   birthDate: string;
@@ -158,10 +163,6 @@ export interface User {
   documents?: (number | Media)[] | null;
   isActive?: boolean | null;
   joinedAt?: string | null;
-  employment?: {
-    baseSalary?: number | null;
-    paymentType?: ('bankTransfer' | 'cash' | 'cheque') | null;
-  };
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -206,9 +207,34 @@ export interface Media {
  */
 export interface Department {
   id: number;
+  /**
+   * E.g., Sales, Field, English, Turkish, HR, Marketing
+   */
   name: string;
+  /**
+   * Is this a functional department (Sales, Field, HR) or a language department (English, Turkish)?
+   */
+  category: 'functional' | 'language';
+  /**
+   * The functional type (only for functional departments)
+   */
+  functionalType?: ('sales' | 'field' | 'marketing' | 'transfer' | 'hr' | 'dental' | 'other') | null;
+  /**
+   * The language code (only for language departments)
+   */
+  languageCode?: ('en' | 'tr' | 'ar' | 'ru' | 'fr' | 'de' | 'es' | 'fa') | null;
+  /**
+   * Brief description of this department
+   */
   description?: string | null;
+  /**
+   * Department manager/head (typically for functional departments)
+   */
   manager?: (number | null) | User;
+  /**
+   * Whether this department is currently active
+   */
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -218,8 +244,72 @@ export interface Department {
  */
 export interface Role {
   id: number;
+  /**
+   * E.g., HR Manager, Department Manager, Sales Representative, Doctor
+   */
   name: string;
+  /**
+   * Determines the base permission level
+   */
+  level: 'admin' | 'manager' | 'employee' | 'restricted';
+  /**
+   * Brief description of this role and its responsibilities
+   */
   description?: string | null;
+  permissions?: {
+    users?: {
+      /**
+       * Can view all users in the system
+       */
+      viewAll?: boolean | null;
+      /**
+       * Can view users in their own department
+       */
+      viewDepartment?: boolean | null;
+      create?: boolean | null;
+      edit?: boolean | null;
+      delete?: boolean | null;
+    };
+    payroll?: {
+      viewAll?: boolean | null;
+      viewDepartment?: boolean | null;
+      /**
+       * Users can always view their own payroll
+       */
+      viewOwn?: boolean | null;
+      create?: boolean | null;
+      edit?: boolean | null;
+      delete?: boolean | null;
+      manageSettings?: boolean | null;
+    };
+    leaves?: {
+      viewAll?: boolean | null;
+      viewDepartment?: boolean | null;
+      viewOwn?: boolean | null;
+      create?: boolean | null;
+      approve?: boolean | null;
+      delete?: boolean | null;
+    };
+    inventory?: {
+      viewAll?: boolean | null;
+      viewOwn?: boolean | null;
+      create?: boolean | null;
+      edit?: boolean | null;
+      assign?: boolean | null;
+      delete?: boolean | null;
+    };
+    departments?: {
+      view?: boolean | null;
+      create?: boolean | null;
+      edit?: boolean | null;
+      delete?: boolean | null;
+    };
+    system?: {
+      manageRoles?: boolean | null;
+      viewReports?: boolean | null;
+      systemSettings?: boolean | null;
+    };
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -269,18 +359,68 @@ export interface Payroll {
     month: '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12';
     year: number;
   };
+  payrollItems?:
+    | {
+        payrollSetting: number | PayrollSetting;
+        description: string;
+        payrollType?: ('primary' | 'bonus' | 'overtime' | 'commission' | 'allowance' | 'other') | null;
+        amount: number;
+        paymentType?: ('bankTransfer' | 'cash' | 'cheque') | null;
+        id?: string | null;
+      }[]
+    | null;
   adjustments?: {
     bonusAmount?: number | null;
     deductionAmount?: number | null;
-    overtimePay?: number | null;
     adjustmentNote?: string | null;
   };
-  calculations?: {
-    grossPay?: number | null;
-    totalDeductions?: number | null;
-    netPay?: number | null;
+  /**
+   * Total amount calculated from payroll items + adjustments
+   */
+  totalAmount?: number | null;
+  paymentDetails?: {
+    paymentDate?: string | null;
+    /**
+     * Transaction ID, cheque number, or other payment reference
+     */
+    paymentReference?: string | null;
+    paymentNotes?: string | null;
   };
   status?: ('generated' | 'reviewed' | 'approved' | 'paid' | 'cancelled') | null;
+  processedBy?: (number | null) | User;
+  processedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payroll-settings".
+ */
+export interface PayrollSetting {
+  id: number;
+  employee: number | User;
+  payrollType: 'primary' | 'bonus' | 'overtime' | 'commission' | 'allowance' | 'other';
+  description?: string | null;
+  paymentDetails: {
+    amount: number;
+    paymentType: 'bankTransfer' | 'cash' | 'cheque';
+    paymentFrequency: 'monthly' | 'quarterly' | 'annual' | 'oneTime';
+  };
+  bankAccount?: {
+    accountNumber?: string | null;
+    bankName?: string | null;
+    accountHolderName?: string | null;
+    swiftCode?: string | null;
+  };
+  isActive?: boolean | null;
+  effectiveDate: {
+    startDate: string;
+    /**
+     * Leave empty for ongoing payments, set for temporary bonuses/deductions
+     */
+    endDate?: string | null;
+  };
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -306,6 +446,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payroll';
         value: number | Payroll;
+      } | null)
+    | ({
+        relationTo: 'payroll-settings';
+        value: number | PayrollSetting;
       } | null)
     | ({
         relationTo: 'roles';
@@ -368,7 +512,7 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   fullName?: T;
   photo?: T;
-  department?: T;
+  departments?: T;
   role?: T;
   jobTitle?: T;
   birthDate?: T;
@@ -383,12 +527,6 @@ export interface UsersSelect<T extends boolean = true> {
   documents?: T;
   isActive?: T;
   joinedAt?: T;
-  employment?:
-    | T
-    | {
-        baseSalary?: T;
-        paymentType?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -452,22 +590,68 @@ export interface PayrollSelect<T extends boolean = true> {
         month?: T;
         year?: T;
       };
+  payrollItems?:
+    | T
+    | {
+        payrollSetting?: T;
+        description?: T;
+        payrollType?: T;
+        amount?: T;
+        paymentType?: T;
+        id?: T;
+      };
   adjustments?:
     | T
     | {
         bonusAmount?: T;
         deductionAmount?: T;
-        overtimePay?: T;
         adjustmentNote?: T;
       };
-  calculations?:
+  totalAmount?: T;
+  paymentDetails?:
     | T
     | {
-        grossPay?: T;
-        totalDeductions?: T;
-        netPay?: T;
+        paymentDate?: T;
+        paymentReference?: T;
+        paymentNotes?: T;
       };
   status?: T;
+  processedBy?: T;
+  processedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payroll-settings_select".
+ */
+export interface PayrollSettingsSelect<T extends boolean = true> {
+  employee?: T;
+  payrollType?: T;
+  description?: T;
+  paymentDetails?:
+    | T
+    | {
+        amount?: T;
+        paymentType?: T;
+        paymentFrequency?: T;
+      };
+  bankAccount?:
+    | T
+    | {
+        accountNumber?: T;
+        bankName?: T;
+        accountHolderName?: T;
+        swiftCode?: T;
+      };
+  isActive?: T;
+  effectiveDate?:
+    | T
+    | {
+        startDate?: T;
+        endDate?: T;
+      };
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -477,7 +661,67 @@ export interface PayrollSelect<T extends boolean = true> {
  */
 export interface RolesSelect<T extends boolean = true> {
   name?: T;
+  level?: T;
   description?: T;
+  permissions?:
+    | T
+    | {
+        users?:
+          | T
+          | {
+              viewAll?: T;
+              viewDepartment?: T;
+              create?: T;
+              edit?: T;
+              delete?: T;
+            };
+        payroll?:
+          | T
+          | {
+              viewAll?: T;
+              viewDepartment?: T;
+              viewOwn?: T;
+              create?: T;
+              edit?: T;
+              delete?: T;
+              manageSettings?: T;
+            };
+        leaves?:
+          | T
+          | {
+              viewAll?: T;
+              viewDepartment?: T;
+              viewOwn?: T;
+              create?: T;
+              approve?: T;
+              delete?: T;
+            };
+        inventory?:
+          | T
+          | {
+              viewAll?: T;
+              viewOwn?: T;
+              create?: T;
+              edit?: T;
+              assign?: T;
+              delete?: T;
+            };
+        departments?:
+          | T
+          | {
+              view?: T;
+              create?: T;
+              edit?: T;
+              delete?: T;
+            };
+        system?:
+          | T
+          | {
+              manageRoles?: T;
+              viewReports?: T;
+              systemSettings?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -487,8 +731,12 @@ export interface RolesSelect<T extends boolean = true> {
  */
 export interface DepartmentsSelect<T extends boolean = true> {
   name?: T;
+  category?: T;
+  functionalType?: T;
+  languageCode?: T;
   description?: T;
   manager?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }

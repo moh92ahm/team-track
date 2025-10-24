@@ -14,6 +14,7 @@ import { Departments } from './collections/Departments'
 import { Roles } from './collections/Roles'
 import { LeaveDays } from './collections/Leaves'
 import { Payroll } from './collections/Payroll'
+import { PayrollSettings } from './collections/PayrollSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +26,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Inventory, LeaveDays, Payroll, Roles, Departments, Media],
+  collections: [Users, Inventory, LeaveDays, Payroll, PayrollSettings, Roles, Departments, Media],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

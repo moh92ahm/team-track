@@ -34,9 +34,13 @@ export const Users: CollectionConfig = {
       hasMany: false,
     },
     {
-      name: 'department',
+      name: 'departments',
       type: 'relationship',
       relationTo: 'departments',
+      hasMany: true,
+      admin: {
+        description: 'Assign multiple departments (e.g., Sales + English, or just HR)',
+      },
     },
     {
       name: 'role',
@@ -136,29 +140,6 @@ export const Users: CollectionConfig = {
           },
         ],
       },
-    },
-    // Payroll details
-    {
-      name: 'employment',
-      type: 'group',
-      fields: [
-        {
-          name: 'baseSalary',
-          type: 'number',
-          label: 'Monthly Base Salary',
-        },
-        {
-          name: 'paymentType',
-          type: 'select',
-          label: 'Payment Type',
-          options: [
-            { label: 'Bank Transfer', value: 'bankTransfer' },
-            { label: 'Cash', value: 'cash' },
-            { label: 'Cheque', value: 'cheque' },
-          ],
-          defaultValue: 'bankTransfer',
-        },
-      ],
     },
   ],
   timestamps: true,

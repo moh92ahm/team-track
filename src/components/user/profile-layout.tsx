@@ -9,18 +9,20 @@ import { InfoCard } from './info-card'
 import { PayrollCard } from './payroll-card'
 import { UserStatusToggle } from './status-toggle'
 import { updateUserStatus } from '@/lib/actions/user'
-import type { User, Inventory, LeaveDay, Payroll } from '@/payload-types'
+import type { User, Inventory, LeaveDay, Payroll, PayrollSetting } from '@/payload-types'
 import { Card, CardContent } from '../ui/card'
 import { SetBreadcrumbLabel } from '@/components/set-breadcrumb-label'
 import { InventoryCard } from './inventory-card'
 import { EmploymentStatusCard } from './employment-status'
 import { LeavesCard } from './leaves-card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ProfileLayoutProps {
   user: User
   inventory?: Inventory[]
   leaves?: LeaveDay[]
   payrollHistory?: Payroll[]
+  payrollSettings?: PayrollSetting[]
 }
 
 export function ProfileLayout({
@@ -28,6 +30,7 @@ export function ProfileLayout({
   inventory = [],
   leaves = [],
   payrollHistory = [],
+  payrollSettings = [],
 }: ProfileLayoutProps) {
   const handleStatusChange = async (isActive: boolean) => {
     await updateUserStatus(String(user.id), isActive)
@@ -64,20 +67,37 @@ export function ProfileLayout({
         </div>
 
         <Card>
-          <CardContent>
-            {/* Profile Cards */}
-            <div className="space-y-6">
-              {/* Main Profile Card */}
-              <ProfileCard user={user} />
-              {/* Contact Information Card */}
-              <InfoCard user={user} />
-              <EmploymentStatusCard user={user} />
-              {/* Payroll Information Card */}
-              <PayrollCard user={user} payrollHistory={payrollHistory} />
+          <CardContent className="pt-2">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid grid-cols-4">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="payroll">Payroll</TabsTrigger>
+                <TabsTrigger value="leaves">Leaves</TabsTrigger>
+                <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              </TabsList>
 
-              <LeavesCard leaves={leaves} />
-              <InventoryCard inventory={inventory} />
-            </div>
+              {/* Profile Tab */}
+              <TabsContent value="profile" className="space-y-6 mt-2">
+                <ProfileCard user={user} />
+                <InfoCard user={user} />
+                <EmploymentStatusCard user={user} />
+              </TabsContent>
+
+              {/* Payroll Tab */}
+              <TabsContent value="payroll" className="space-y-6 mt-2">
+                <PayrollCard payrollHistory={payrollHistory} payrollSettings={payrollSettings} />
+              </TabsContent>
+
+              {/* Leaves Tab */}
+              <TabsContent value="leaves" className="space-y-6 mt-2">
+                <LeavesCard leaves={leaves} />
+              </TabsContent>
+
+              {/* Inventory Tab */}
+              <TabsContent value="inventory" className="space-y-6 mt-2">
+                <InventoryCard inventory={inventory} />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>

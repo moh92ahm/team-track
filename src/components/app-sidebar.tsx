@@ -51,6 +51,16 @@ const data = {
       title: 'Payroll',
       url: '/payroll',
       icon: IconCreditCard,
+      items: [
+        {
+          title: 'Payroll Records',
+          url: '/payroll',
+        },
+        {
+          title: 'Payroll Settings',
+          url: '/payroll/settings',
+        },
+      ],
     },
   ],
   // navClouds: [

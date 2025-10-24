@@ -118,26 +118,35 @@ export function PayrollTable({ data, enablePagination = true }: PayrollTableProp
       render: (value: unknown, item: Payroll) => formatPeriod(item.period || {}),
     },
     {
-      key: 'workDays' as keyof Payroll,
-      header: 'Work Days',
+      key: 'payrollItems' as keyof Payroll,
+      header: 'Items',
       render: (value: unknown, item: Payroll) => {
-        const workDays = item.workDays
-        if (!workDays) return '-'
-        return `${workDays.daysWorked || 0}/${workDays.totalWorkingDays || 0}`
+        const items = item.payrollItems
+        if (!items || !Array.isArray(items) || items.length === 0) return '-'
+        return `${items.length} item${items.length > 1 ? 's' : ''}`
       },
     },
     {
-      key: 'grossPay' as keyof Payroll,
-      header: 'Gross Pay',
+      key: 'totalAmount' as keyof Payroll,
+      header: 'Total Amount',
       render: (value: unknown, item: Payroll) => {
-        return formatCurrency(item.calculations?.grossPay)
+        return formatCurrency(item.totalAmount)
       },
     },
     {
-      key: 'netPay' as keyof Payroll,
-      header: 'Net Pay',
+      key: 'adjustments' as keyof Payroll,
+      header: 'Adjustments',
       render: (value: unknown, item: Payroll) => {
-        return formatCurrency(item.calculations?.netPay)
+        const adjustments = item.adjustments
+        if (!adjustments) return '-'
+        const bonus = adjustments.bonusAmount || 0
+        const deduction = adjustments.deductionAmount || 0
+        if (bonus === 0 && deduction === 0) return '-'
+
+        const parts = []
+        if (bonus > 0) parts.push(`+${formatCurrency(bonus)}`)
+        if (deduction > 0) parts.push(`-${formatCurrency(deduction)}`)
+        return parts.join(' ')
       },
     },
     {

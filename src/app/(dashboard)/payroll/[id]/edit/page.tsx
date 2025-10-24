@@ -34,14 +34,13 @@ export default async function EditPayrollPage({ params }: EditPayrollPageProps) 
       const employeeId = String(formData.get('employee') || '')
       const month = String(formData.get('month') || '')
       const year = Number(formData.get('year') || 0)
-      const totalWorkingDays = Number(formData.get('totalWorkingDays') || 0)
-      const daysWorked = Number(formData.get('daysWorked') || 0)
-      const leaveDays = Number(formData.get('leaveDays') || 0)
       const bonusAmount = Number(formData.get('bonusAmount') || 0)
       const deductionAmount = Number(formData.get('deductionAmount') || 0)
-      const overtimePay = Number(formData.get('overtimePay') || 0)
       const adjustmentNote = String(formData.get('adjustmentNote') || '')
       const status = String(formData.get('status') || 'generated')
+      const paymentDate = String(formData.get('paymentDate') || '')
+      const paymentReference = String(formData.get('paymentReference') || '')
+      const paymentNotes = String(formData.get('paymentNotes') || '')
 
       const data: any = {
         employee: parseInt(employeeId),
@@ -61,16 +60,15 @@ export default async function EditPayrollPage({ params }: EditPayrollPageProps) 
             | '12',
           year,
         },
-        workDays: {
-          totalWorkingDays,
-          daysWorked,
-          leaveDays,
-        },
         adjustments: {
           bonusAmount,
           deductionAmount,
-          overtimePay,
           adjustmentNote: adjustmentNote || null,
+        },
+        paymentDetails: {
+          paymentDate: paymentDate || null,
+          paymentReference: paymentReference || null,
+          paymentNotes: paymentNotes || null,
         },
         status,
       }

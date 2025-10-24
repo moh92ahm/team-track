@@ -52,14 +52,11 @@ export function UserForm({
         : typeof initialData?.photo === 'string'
           ? initialData.photo
           : null,
-    department:
-      typeof initialData?.department === 'object' &&
-      initialData.department &&
-      'id' in initialData.department
-        ? String((initialData.department).id)
-        : initialData?.department
-          ? String(initialData.department)
-          : undefined,
+    departments:
+      Array.isArray(initialData?.departments) &&
+      initialData.departments.length > 0
+        ? initialData.departments.map((dept) => String(typeof dept === 'object' ? dept.id : dept))
+        : undefined,
     role:
       typeof initialData?.role === 'object' && initialData.role && 'id' in initialData.role
         ? String((initialData.role).id)
@@ -85,9 +82,6 @@ export function UserForm({
       : mode === 'create'
         ? formatDateForInput(new Date())
         : undefined,
-    // Employment fields
-    baseSalary: (initialData)?.employment?.baseSalary || undefined,
-    paymentType: (initialData)?.employment?.paymentType || 'bankTransfer',
   }
 
   const {
@@ -240,11 +234,11 @@ export function UserForm({
 
                 <SelectField
                   control={control}
-                  name={'department'}
+                  name={'departments'}
                   label="Department"
                   placeholder="Select department"
                   options={departments}
-                  error={errors.department?.message as string | undefined}
+                  error={errors.departments?.message as string | undefined}
                 />
 
                 <SelectField
@@ -366,33 +360,6 @@ export function UserForm({
                 </div>
 
                 <Separator />
-
-                {/* Payroll Information Section */}
-                <CardTitle className="text-lg font-bold">Payroll Information</CardTitle>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField
-                      label="Monthly Base Salary"
-                      name={'baseSalary'}
-                      register={register}
-                      type="number"
-                      inputProps={{ step: '0.01', min: '0' }}
-                      error={errors.baseSalary?.message as string | undefined}
-                    />
-                    <SelectField
-                      control={control}
-                      name={'paymentType'}
-                      label="Payment Type"
-                      placeholder="Select payment type"
-                      options={[
-                        { label: 'Bank Transfer', value: 'bankTransfer' },
-                        { label: 'Cash', value: 'cash' },
-                        { label: 'Cheque', value: 'cheque' },
-                      ]}
-                      error={errors.paymentType?.message as string | undefined}
-                    />
-                  </div>
-                </div>
 
                 <div className="space-y-4 mt-10">
                   {/* Form Actions */}

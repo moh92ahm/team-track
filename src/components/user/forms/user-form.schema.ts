@@ -10,7 +10,7 @@ export const UserFormSchema = z
     photo: z
       .custom<File | string | null>((v) => v === null || v instanceof File || typeof v === 'string')
       .optional(),
-    department: z.string().optional(),
+    departments: z.array(z.string()).optional(),
     role: z.string().optional(),
     jobTitle: z.string().optional().default(''),
     birthDate: z
@@ -39,8 +39,6 @@ export const UserFormSchema = z
     workPermitExpiry: z.string().optional(),
     address: z.string().optional().default('Write the address here...'),
     // Employment fields
-    baseSalary: z.coerce.number().min(0, 'Base salary must be a positive number').optional(),
-    paymentType: z.enum(['bankTransfer', 'cash', 'cheque'] as const).optional(),
   })
   .refine(
     (data) => {

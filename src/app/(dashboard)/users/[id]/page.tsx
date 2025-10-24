@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { ProfileLayout } from '@/components/user/profile-layout'
-import type { Inventory, LeaveDay, Payroll } from '@/payload-types'
+import type { Inventory, LeaveDay, Payroll, PayrollSetting } from '@/payload-types'
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -65,12 +65,27 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       user: currentUser,
     })
 
+    // Fetch payroll settings for this user
+    const payrollSettingsRes = await payload.find({
+      collection: 'payroll-settings',
+      depth: 2,
+      limit: 100,
+      where: {
+        employee: {
+          equals: Number(user.id),
+        },
+      },
+      sort: '-createdAt', // Show most recent first
+      user: currentUser,
+    })
+
     return (
       <ProfileLayout
         user={user}
         inventory={invRes.docs as Inventory[]}
         leaves={leavesRes.docs as LeaveDay[]}
         payrollHistory={payrollRes.docs as Payroll[]}
+        payrollSettings={payrollSettingsRes.docs as PayrollSetting[]}
       />
     )
   } catch (error) {

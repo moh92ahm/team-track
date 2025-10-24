@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import type { Payload } from 'payload'
+import { seedRolesAndDepartments } from './roles-departments'
 
 export async function seed() {
   const payload = await getPayload({ config: configPromise })
@@ -11,29 +12,42 @@ export async function seed() {
     // Clear existing data first (optional)
     // await clearDatabase(payload)
 
-    // 1. Create Departments first
-    console.log('📁 Creating departments...')
-    const departments = await seedDepartments(payload)
+    // 1. Create Roles and Departments
+    console.log('📁 Creating roles and departments...')
+    await seedRolesAndDepartments(payload)
 
-    // 2. Create Roles
-    console.log('👔 Creating roles...')
-    const roles = await seedRoles(payload)
+    // Fetch created departments and roles
+    const departmentsData = await payload.find({
+      collection: 'departments',
+      limit: 100,
+    })
+    const rolesData = await payload.find({
+      collection: 'roles',
+      limit: 100,
+    })
 
-    // 3. Create Staff (depends on departments and roles)
-    console.log('👥 Creating staff members...')
-    const staff = await seedStaff(payload, departments, roles)
+    const departments = departmentsData.docs
+    const roles = rolesData.docs
 
-    // 4. Create Inventory (can reference staff as holders)
+    // 2. Create Users (Marvel characters)
+    console.log('🦸 Creating Marvel characters as users...')
+    const users = await seedMarvelCharacters(payload, departments, roles)
+
+    // 3. Create Payroll Settings for each user
+    console.log('💰 Creating payroll settings...')
+    await seedPayrollSettings(payload, users)
+
+    // 4. Create Payroll History (last 3 months)
+    console.log('� Creating payroll history...')
+    await seedPayrollHistory(payload, users)
+
+    // 5. Create Inventory (30 items assigned to users)
     console.log('💻 Creating inventory items...')
-    await seedInventory(payload, staff)
+    await seedInventory(payload, users)
 
-    // 5. Create Leave records (depends on staff)
+    // 6. Create Leave records
     console.log('🏖️ Creating leave records...')
-    await seedLeaves(payload, staff)
-
-    // 6. Create Payroll records (depends on staff)
-    console.log('💰 Creating payroll records...')
-    await seedPayroll(payload, staff)
+    await seedLeaves(payload, users)
 
     console.log('✅ Database seeding completed successfully!')
     return { success: true }
@@ -43,576 +57,761 @@ export async function seed() {
   }
 }
 
-// Optional: Clear existing data
-async function clearDatabase(payload: any) {
-  console.log('🧹 Clearing existing data...')
-
-  const collections = ['payroll', 'leaves', 'inventory', 'staff', 'roles', 'departments']
-
-  for (const collection of collections) {
-    try {
-      const existing = await payload.find({ collection, limit: 1000 })
-      for (const item of existing.docs) {
-        await payload.delete({ collection, id: item.id })
-      }
-      console.log(`  Cleared ${collection}`)
-    } catch (error) {
-      console.log(`  Skipped ${collection} (might not exist)`)
-    }
-  }
+// Helper function to get random items from array
+function getRandomItems<T>(arr: T[], count: number): T[] {
+  const shuffled = [...arr].sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, count)
 }
 
-async function seedDepartments(payload: any) {
-  const departmentsData = [
-    {
-      name: 'Engineering',
-      description: 'Software development, infrastructure, and technical operations',
-      isActive: true,
-    },
-    {
-      name: 'Design',
-      description: 'UI/UX design, product design, and creative services',
-      isActive: true,
-    },
-    {
-      name: 'Product',
-      description: 'Product management and strategy',
-      isActive: true,
-    },
-    {
-      name: 'Marketing',
-      description: 'Digital marketing, content, and brand management',
-      isActive: true,
-    },
-    {
-      name: 'Sales',
-      description: 'Sales operations and business development',
-      isActive: true,
-    },
-    {
-      name: 'Human Resources',
-      description: 'People operations, recruitment, and employee relations',
-      isActive: true,
-    },
-    {
-      name: 'Finance',
-      description: 'Financial planning, accounting, and operations',
-      isActive: true,
-    },
-    {
-      name: 'Customer Success',
-      description: 'Customer support and success management',
-      isActive: true,
-    },
-  ]
-
-  const departments = []
-  for (const deptData of departmentsData) {
-    try {
-      const department = await payload.create({
-        collection: 'departments',
-        data: deptData,
-      })
-      departments.push(department)
-      console.log(`  ✓ Created department: ${deptData.name}`)
-    } catch (error) {
-      console.error(`  ✗ Failed to create department ${deptData.name}:`, error)
-    }
-  }
-
-  return departments
+// Helper function to get random item from array
+function getRandomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
 }
 
-async function seedRoles(payload: any) {
-  const rolesData = [
-    // Engineering roles
-    { name: 'Junior Developer', level: 'junior', department: 'Engineering', isActive: true },
-    { name: 'Software Developer', level: 'mid', department: 'Engineering', isActive: true },
-    { name: 'Senior Developer', level: 'senior', department: 'Engineering', isActive: true },
-    { name: 'Tech Lead', level: 'lead', department: 'Engineering', isActive: true },
-    { name: 'Engineering Manager', level: 'manager', department: 'Engineering', isActive: true },
-
-    // Design roles
-    { name: 'UI Designer', level: 'mid', department: 'Design', isActive: true },
-    { name: 'UX Designer', level: 'mid', department: 'Design', isActive: true },
-    { name: 'Senior Designer', level: 'senior', department: 'Design', isActive: true },
-    { name: 'Design Lead', level: 'lead', department: 'Design', isActive: true },
-
-    // Product roles
-    { name: 'Product Manager', level: 'mid', department: 'Product', isActive: true },
-    { name: 'Senior Product Manager', level: 'senior', department: 'Product', isActive: true },
-    { name: 'Product Lead', level: 'lead', department: 'Product', isActive: true },
-
-    // Other roles
-    { name: 'Marketing Specialist', level: 'mid', department: 'Marketing', isActive: true },
-    { name: 'Sales Representative', level: 'mid', department: 'Sales', isActive: true },
-    { name: 'HR Specialist', level: 'mid', department: 'Human Resources', isActive: true },
-    { name: 'Accountant', level: 'mid', department: 'Finance', isActive: true },
-    {
-      name: 'Customer Success Manager',
-      level: 'mid',
-      department: 'Customer Success',
-      isActive: true,
-    },
-  ]
-
-  const roles = []
-  for (const roleData of rolesData) {
-    try {
-      const role = await payload.create({
-        collection: 'roles',
-        data: roleData,
-      })
-      roles.push(role)
-      console.log(`  ✓ Created role: ${roleData.name}`)
-    } catch (error) {
-      console.error(`  ✗ Failed to create role ${roleData.name}:`, error)
-    }
+// Marvel Characters Data
+async function seedMarvelCharacters(payload: Payload, departments: any[], roles: any[]) {
+  // Find departments by name
+  const findDepts = (names: string[]) => {
+    return names.map((name) => departments.find((d) => d.name === name)?.id).filter(Boolean)
   }
 
-  return roles
-}
-
-async function seedStaff(payload: any, departments: any[], roles: any[]) {
-  // Helper function to find department/role by name
-  const findDept = (name: string) => departments.find((d) => d.name === name)?.id
   const findRole = (name: string) => roles.find((r) => r.name === name)?.id
 
-  const staffData = [
-    // Engineering Team
+  const marvelCharacters = [
     {
-      fullName: 'Alex Johnson',
-      workEmail: 'alex.johnson@teamtrack.com',
-      contactEmail: 'alex.personal@gmail.com',
-      personalPhone: '+1-555-0101',
-      workPhone: '+1-555-0102',
-      jobTitle: 'Senior Software Engineer',
-      department: findDept('Engineering'),
-      role: findRole('Senior Developer'),
-      birthDate: '1990-03-15',
-      joinedAt: '2023-01-15T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
+      fullName: 'Tony Stark',
+      email: 'tony.stark@shield.marvel',
+      username: 'tstark',
+      secondaryEmail: 'ironman@stark.industries',
+      password: 'IAmIronMan123!',
+      jobTitle: 'Chief Technology Officer',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1970-05-29',
+      primaryPhone: '+1-555-STARK',
+      secondaryPhone: '+1-555-JARVIS',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-STARK-001',
+      address: '10880 Malibu Point, Malibu, CA 90265',
+      joinedAt: '2020-01-15T09:00:00.000Z',
       isActive: true,
     },
     {
-      fullName: 'Sarah Chen',
-      workEmail: 'sarah.chen@teamtrack.com',
-      contactEmail: 'sarah.personal@gmail.com',
-      personalPhone: '+1-555-0103',
-      workPhone: '+1-555-0104',
-      jobTitle: 'Frontend Developer',
-      department: findDept('Engineering'),
-      role: findRole('Software Developer'),
-      birthDate: '1992-07-22',
-      joinedAt: '2023-02-01T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
+      fullName: 'Natasha Romanoff',
+      email: 'natasha.romanoff@shield.marvel',
+      username: 'nromanoff',
+      secondaryEmail: 'blackwidow@avengers.com',
+      password: 'RedRoom123!',
+      jobTitle: 'Senior Field Agent',
+      departments: findDepts(['Field', 'Russian', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1984-12-03',
+      primaryPhone: '+1-555-WIDOW',
+      employmentType: 'citizen',
+      nationality: 'Russian-American',
+      identificationNumber: 'RU-ROMAN-001',
+      address: 'SHIELD Headquarters, Washington DC',
+      joinedAt: '2019-06-20T09:00:00.000Z',
       isActive: true,
     },
     {
-      fullName: 'Michael Rodriguez',
-      workEmail: 'michael.rodriguez@teamtrack.com',
-      contactEmail: 'mike.personal@gmail.com',
-      personalPhone: '+1-555-0105',
-      workPhone: '+1-555-0106',
-      jobTitle: 'Engineering Manager',
-      department: findDept('Engineering'),
-      role: findRole('Engineering Manager'),
-      birthDate: '1988-11-10',
-      joinedAt: '2022-08-15T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
-      isActive: true,
-    },
-
-    // Design Team
-    {
-      fullName: 'Emma Thompson',
-      workEmail: 'emma.thompson@teamtrack.com',
-      contactEmail: 'emma.personal@gmail.com',
-      personalPhone: '+1-555-0107',
-      workPhone: '+1-555-0108',
-      jobTitle: 'Senior UX Designer',
-      department: findDept('Design'),
-      role: findRole('Senior Designer'),
-      birthDate: '1989-05-18',
-      joinedAt: '2023-03-01T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
+      fullName: 'Steve Rogers',
+      email: 'steve.rogers@shield.marvel',
+      username: 'srogers',
+      secondaryEmail: 'captainamerica@avengers.com',
+      password: 'Brooklyn1918!',
+      jobTitle: 'Operations Manager',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Department Manager'),
+      birthDate: '1918-07-04',
+      primaryPhone: '+1-555-CAPTAIN',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-ROGERS-001',
+      address: 'Brooklyn, New York',
+      joinedAt: '2018-03-01T09:00:00.000Z',
       isActive: true,
     },
     {
-      fullName: 'David Kim',
-      workEmail: 'david.kim@teamtrack.com',
-      contactEmail: 'david.personal@gmail.com',
-      personalPhone: '+1-555-0109',
-      workPhone: '+1-555-0110',
-      jobTitle: 'UI Designer',
-      department: findDept('Design'),
-      role: findRole('UI Designer'),
-      birthDate: '1993-09-25',
-      joinedAt: '2023-04-15T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
-      isActive: true,
-    },
-
-    // Product Team
-    {
-      fullName: 'Lisa Wang',
-      workEmail: 'lisa.wang@teamtrack.com',
-      contactEmail: 'lisa.personal@gmail.com',
-      personalPhone: '+1-555-0111',
-      workPhone: '+1-555-0112',
-      jobTitle: 'Product Manager',
-      department: findDept('Product'),
-      role: findRole('Product Manager'),
-      birthDate: '1987-12-08',
-      joinedAt: '2022-11-01T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
-      isActive: true,
-    },
-
-    // Marketing
-    {
-      fullName: 'James Wilson',
-      workEmail: 'james.wilson@teamtrack.com',
-      contactEmail: 'james.personal@gmail.com',
-      personalPhone: '+1-555-0113',
-      workPhone: '+1-555-0114',
-      jobTitle: 'Marketing Specialist',
-      department: findDept('Marketing'),
+      fullName: 'Bruce Banner',
+      email: 'bruce.banner@shield.marvel',
+      username: 'bbanner',
+      secondaryEmail: 'hulk@gamma.lab',
+      password: 'GreenGiant123!',
+      jobTitle: 'Research Scientist',
+      departments: findDepts(['Marketing', 'English']),
       role: findRole('Marketing Specialist'),
-      birthDate: '1991-04-12',
-      joinedAt: '2023-05-01T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
+      birthDate: '1969-12-18',
+      primaryPhone: '+1-555-BANNER',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-BANNER-001',
+      address: 'New York City',
+      joinedAt: '2019-09-15T09:00:00.000Z',
       isActive: true,
     },
-
-    // HR
     {
-      fullName: 'Maria Garcia',
-      workEmail: 'maria.garcia@teamtrack.com',
-      contactEmail: 'maria.personal@gmail.com',
-      personalPhone: '+1-555-0115',
-      workPhone: '+1-555-0116',
-      jobTitle: 'HR Specialist',
-      department: findDept('Human Resources'),
-      role: findRole('HR Specialist'),
-      birthDate: '1986-08-30',
-      joinedAt: '2022-09-15T09:00:00.000Z',
-      workEmailPassword: 'TempPass123!',
+      fullName: 'Thor Odinson',
+      email: 'thor.odinson@shield.marvel',
+      username: 'thor',
+      secondaryEmail: 'godofthunder@asgard.realm',
+      password: 'Mjolnir123!',
+      jobTitle: 'Field Operations Lead',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1985-01-01', // Changed from year 965 to avoid date validation issues
+      primaryPhone: '+1-555-THUNDER',
+      employmentType: 'other',
+      nationality: 'Asgardian',
+      identificationNumber: 'AS-THOR-001',
+      address: 'New Asgard, Norway',
+      joinedAt: '2018-05-10T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Peter Parker',
+      email: 'peter.parker@shield.marvel',
+      username: 'pparker',
+      secondaryEmail: 'spiderman@queens.ny',
+      password: 'WebSlinger123!',
+      jobTitle: 'Junior Field Agent',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '2001-08-10',
+      primaryPhone: '+1-555-SPIDEY',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-PARKER-001',
+      address: 'Queens, New York',
+      joinedAt: '2023-06-01T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Wanda Maximoff',
+      email: 'wanda.maximoff@shield.marvel',
+      username: 'wmaximoff',
+      secondaryEmail: 'scarletwitch@hex.magic',
+      password: 'ChaosM agic123!',
+      jobTitle: 'Special Operations Agent',
+      departments: findDepts(['Field', 'Russian', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1989-02-10',
+      primaryPhone: '+1-555-WANDA',
+      employmentType: 'workPermit',
+      nationality: 'Sokovian',
+      identificationNumber: 'SK-MAXIM-001',
+      workPermitExpiry: '2026-12-31',
+      address: 'Westview, New Jersey',
+      joinedAt: '2021-04-15T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Stephen Strange',
+      email: 'stephen.strange@shield.marvel',
+      username: 'sstrange',
+      secondaryEmail: 'drstrange@sanctum.mystic',
+      password: 'TimeSt0ne123!',
+      jobTitle: 'Medical Consultant',
+      departments: findDepts(['Dental Clinic - Doctors', 'English']),
+      role: findRole('Doctor'),
+      birthDate: '1976-11-18',
+      primaryPhone: '+1-555-STRANGE',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-STRANGE-001',
+      address: '177A Bleecker Street, New York',
+      joinedAt: '2020-11-01T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Carol Danvers',
+      email: 'carol.danvers@shield.marvel',
+      username: 'cdanvers',
+      secondaryEmail: 'captainmarvel@space.force',
+      password: 'Binary123!',
+      jobTitle: 'Senior Field Agent',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1968-04-24',
+      primaryPhone: '+1-555-MARVEL',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-DANVERS-001',
+      address: 'Louisiana',
+      joinedAt: '2019-03-08T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'TChalla',
+      email: 'tchalla@shield.marvel',
+      username: 'tchalla',
+      secondaryEmail: 'blackpanther@wakanda.nation',
+      password: 'Vibranium123!',
+      jobTitle: 'International Relations Manager',
+      departments: findDepts(['Sales', 'English', 'French']),
+      role: findRole('Sales Representative'),
+      birthDate: '1980-06-15',
+      primaryPhone: '+1-555-PANTHER',
+      employmentType: 'other',
+      nationality: 'Wakandan',
+      identificationNumber: 'WK-TCHALLA-001',
+      address: 'Wakanda',
+      joinedAt: '2018-02-16T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Clint Barton',
+      email: 'clint.barton@shield.marvel',
+      username: 'cbarton',
+      secondaryEmail: 'hawkeye@avengers.com',
+      password: 'BullsEye123!',
+      jobTitle: 'Field Agent',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1971-01-07',
+      primaryPhone: '+1-555-HAWKEYE',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-BARTON-001',
+      address: 'Iowa',
+      joinedAt: '2019-01-10T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Scott Lang',
+      email: 'scott.lang@shield.marvel',
+      username: 'slang',
+      secondaryEmail: 'antman@pym.tech',
+      password: 'Quantum123!',
+      jobTitle: 'Technical Specialist',
+      departments: findDepts(['Transfer', 'English']),
+      role: findRole('Sales Representative'),
+      birthDate: '1979-04-06',
+      primaryPhone: '+1-555-ANTMAN',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-LANG-001',
+      address: 'San Francisco, California',
+      joinedAt: '2022-07-06T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Hope van Dyne',
+      email: 'hope.vandyne@shield.marvel',
+      username: 'hvandyne',
+      secondaryEmail: 'wasp@pym.tech',
+      password: 'WaspWings123!',
+      jobTitle: 'Operations Specialist',
+      departments: findDepts(['Transfer', 'English']),
+      role: findRole('Sales Representative'),
+      birthDate: '1981-08-23',
+      primaryPhone: '+1-555-WASP',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-VANDYNE-001',
+      address: 'San Francisco, California',
+      joinedAt: '2022-07-06T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Sam Wilson',
+      email: 'sam.wilson@shield.marvel',
+      username: 'swilson',
+      secondaryEmail: 'falcon@avengers.com',
+      password: 'Wingman123!',
+      jobTitle: 'Field Operations Manager',
+      departments: findDepts(['Field', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1978-09-23',
+      primaryPhone: '+1-555-FALCON',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-WILSON-001',
+      address: 'Washington DC',
+      joinedAt: '2020-04-04T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Bucky Barnes',
+      email: 'bucky.barnes@shield.marvel',
+      username: 'bbarnes',
+      secondaryEmail: 'wintersoldier@hydra.defunct',
+      password: 'WhiteWolf123!',
+      jobTitle: 'Security Specialist',
+      departments: findDepts(['Field', 'English', 'Russian']),
+      role: findRole('Field Agent'),
+      birthDate: '1917-03-10',
+      primaryPhone: '+1-555-BUCKY',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-BARNES-001',
+      address: 'Brooklyn, New York',
+      joinedAt: '2021-03-19T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Nick Fury',
+      email: 'nick.fury@shield.marvel',
+      username: 'nfury',
+      secondaryEmail: 'director@shield.gov',
+      password: 'OnlyOneEye123!',
+      jobTitle: 'Director of Operations',
+      departments: findDepts(['Human Resources']),
+      role: findRole('HR Manager'),
+      birthDate: '1951-07-04',
+      primaryPhone: '+1-555-FURY',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-FURY-001',
+      address: 'Classified',
+      joinedAt: '2015-01-01T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Shuri',
+      email: 'shuri@shield.marvel',
+      username: 'shuri',
+      secondaryEmail: 'blackpanther@wakanda.lab',
+      password: 'TechGenius123!',
+      jobTitle: 'Technology Innovation Lead',
+      departments: findDepts(['Marketing', 'English']),
+      role: findRole('Marketing Specialist'),
+      birthDate: '1998-10-01',
+      primaryPhone: '+1-555-SHURI',
+      employmentType: 'other',
+      nationality: 'Wakandan',
+      identificationNumber: 'WK-SHURI-001',
+      address: 'Wakanda',
+      joinedAt: '2020-02-16T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Pietro Maximoff',
+      email: 'pietro.maximoff@shield.marvel',
+      username: 'pmaximoff',
+      secondaryEmail: 'quicksilver@speed.fast',
+      password: 'FastRunner123!',
+      jobTitle: 'Rapid Response Agent',
+      departments: findDepts(['Field', 'Russian', 'English']),
+      role: findRole('Field Agent'),
+      birthDate: '1989-02-10',
+      primaryPhone: '+1-555-QUICK',
+      employmentType: 'workPermit',
+      nationality: 'Sokovian',
+      identificationNumber: 'SK-MAXIM-002',
+      workPermitExpiry: '2026-12-31',
+      address: 'Sokovia',
+      joinedAt: '2021-04-15T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Kamala Khan',
+      email: 'kamala.khan@shield.marvel',
+      username: 'kkhan',
+      secondaryEmail: 'msmarvel@jersey.city',
+      password: 'Embiggen123!',
+      jobTitle: 'Junior Marketing Specialist',
+      departments: findDepts(['Marketing', 'English', 'Arabic']),
+      role: findRole('Marketing Specialist'),
+      birthDate: '2003-06-13',
+      primaryPhone: '+1-555-KAMALA',
+      employmentType: 'citizen',
+      nationality: 'Pakistani-American',
+      identificationNumber: 'US-KHAN-001',
+      address: 'Jersey City, New Jersey',
+      joinedAt: '2024-01-10T09:00:00.000Z',
+      isActive: true,
+    },
+    {
+      fullName: 'Marc Spector',
+      email: 'marc.spector@shield.marvel',
+      username: 'mspector',
+      secondaryEmail: 'moonknight@khonshu.egypt',
+      password: 'MoonKnight123!',
+      jobTitle: 'Night Operations Agent',
+      departments: findDepts(['Field', 'English', 'Arabic']),
+      role: findRole('Field Agent'),
+      birthDate: '1975-03-09',
+      primaryPhone: '+1-555-MOON',
+      employmentType: 'citizen',
+      nationality: 'American',
+      identificationNumber: 'US-SPECTOR-001',
+      address: 'New York City',
+      joinedAt: '2022-03-30T09:00:00.000Z',
       isActive: true,
     },
   ]
 
-  const staff = []
-  for (const staffMember of staffData) {
+  const users = []
+  for (const character of marvelCharacters) {
     try {
       const created = await payload.create({
-        collection: 'staff',
-        data: staffMember,
+        collection: 'users',
+        data: character as any,
       })
-      staff.push(created)
-      console.log(`  ✓ Created staff: ${staffMember.fullName}`)
+      users.push(created)
+      console.log(`  ✓ Created user: ${character.fullName}`)
     } catch (error) {
-      console.error(`  ✗ Failed to create staff ${staffMember.fullName}:`, error)
+      console.error(`  ✗ Failed to create user ${character.fullName}:`, error)
     }
   }
 
-  return staff
+  return users
 }
 
-async function seedInventory(payload: Payload, staff: any[]) {
-  const inventoryData: {
-    itemType: 'laptop' | 'phone' | 'accessory' | 'simCard' | 'other'
-    model: string
-    serialNumber: string
-    status: 'inUse' | 'inStock' | 'needsRepair'
-    holder?: string | undefined
-    purchaseDate: string
-    warrantyExpiry?: string
-  }[] = [
-    // Laptops
-    {
-      itemType: 'laptop',
-      model: 'MacBook Pro 16" M3',
-      serialNumber: 'MBP16-001',
-      status: 'inUse' as const,
-      holder: staff[0]?.id, // Alex Johnson
-      purchaseDate: '2024-01-15',
-      warrantyExpiry: '2027-01-15',
-    },
-    {
-      itemType: 'laptop' as const,
-      model: 'MacBook Air 13" M2',
-      serialNumber: 'MBA13-001',
-      status: 'inUse' as const,
-      holder: staff[1]?.id, // Sarah Chen
-      purchaseDate: '2024-02-01',
-      warrantyExpiry: '2027-02-01',
-    },
-    {
-      itemType: 'laptop' as const,
-      model: 'Dell XPS 15',
-      serialNumber: 'XPS15-001',
-      status: 'inUse' as const,
-      holder: staff[2]?.id, // Michael Rodriguez
-      purchaseDate: '2024-01-20',
-      warrantyExpiry: '2027-01-20',
-    },
+// Payroll Settings - Create ongoing salary settings for each user
+async function seedPayrollSettings(payload: Payload, users: any[]) {
+  const payrollSettings = []
 
-    // Accessories (Monitors, Keyboards, etc.)
-    {
-      itemType: 'accessory' as const,
-      model: 'Dell UltraSharp 27" 4K Monitor',
-      serialNumber: 'DEL27-001',
-      status: 'inUse' as const,
-      holder: staff[0]?.id, // Alex Johnson
-      purchaseDate: '2024-01-15',
-      warrantyExpiry: '2027-01-15',
-    },
-    {
-      itemType: 'accessory' as const,
-      model: 'LG 24" Full HD Monitor',
-      serialNumber: 'LG24-001',
-      status: 'inUse' as const,
-      holder: staff[1]?.id, // Sarah Chen
-      purchaseDate: '2024-02-01',
-      warrantyExpiry: '2027-02-01',
-    },
-    {
-      itemType: 'accessory' as const,
-      model: 'Samsung 32" Curved Monitor',
-      serialNumber: 'SAM32-001',
-      status: 'inUse' as const,
-      holder: staff[3]?.id, // Emma Thompson
-      purchaseDate: '2024-03-01',
-      warrantyExpiry: '2027-03-01',
-    },
+  // Base salaries by role type
+  const salaryRanges: Record<string, number> = {
+    'HR Manager': 12000,
+    'Department Manager': 10000,
+    'Field Agent': 7000,
+    'Sales Representative': 6500,
+    Doctor: 15000,
+    'Marketing Specialist': 6000,
+  }
 
-    // Keyboards & Mice
-    {
-      itemType: 'accessory' as const,
-      model: 'Apple Magic Keyboard',
-      serialNumber: 'AMK-001',
-      status: 'inUse' as const,
-      holder: staff[0]?.id,
-      purchaseDate: '2024-01-15',
-    },
-    {
-      itemType: 'accessory' as const,
-      model: 'Logitech MX Master 3 Mouse',
-      serialNumber: 'LMX3-001',
-      status: 'inUse' as const,
-      holder: staff[0]?.id,
-      purchaseDate: '2024-01-15',
-    },
+  for (const user of users) {
+    try {
+      const roleName = typeof user.role === 'object' ? user.role.name : 'Field Agent'
+      const baseSalary = salaryRanges[roleName] || 6000
 
-    // Phones
-    {
-      itemType: 'phone' as const,
-      model: 'iPhone 15 Pro',
-      serialNumber: 'IP15P-001',
-      status: 'inUse' as const,
-      holder: staff[2]?.id, // Michael Rodriguez (Manager)
-      purchaseDate: '2024-01-10',
-      warrantyExpiry: '2025-01-10',
-    },
-    {
-      itemType: 'phone' as const,
-      model: 'Samsung Galaxy S24',
-      serialNumber: 'SGS24-001',
-      status: 'inUse' as const,
-      holder: staff[5]?.id, // Lisa Wang (Product Manager)
-      purchaseDate: '2024-02-15',
-      warrantyExpiry: '2025-02-15',
-    },
+      // Primary Salary
+      const primarySalary = await payload.create({
+        collection: 'payroll-settings',
+        data: {
+          employee: user.id,
+          payrollType: 'primary',
+          description: `Monthly Salary - ${user.fullName}`,
+          paymentDetails: {
+            amount: baseSalary,
+            paymentType: 'bankTransfer',
+            paymentFrequency: 'monthly',
+          },
+          bankAccount: {
+            accountNumber: `ACC${Math.floor(Math.random() * 1000000)}`,
+            bankName: 'SHIELD Credit Union',
+            accountHolderName: user.fullName,
+            swiftCode: 'SHIELDXX',
+          },
+          isActive: true,
+          effectiveDate: {
+            startDate: user.joinedAt || new Date().toISOString(),
+          },
+        },
+      })
+      payrollSettings.push(primarySalary)
 
-    // Available Items
-    {
-      itemType: 'laptop' as const,
-      model: 'MacBook Air 13" M2',
-      serialNumber: 'MBA13-002',
-      status: 'inStock' as const,
-      purchaseDate: '2024-03-15',
-      warrantyExpiry: '2027-03-15',
-    },
-    {
-      itemType: 'accessory' as const,
-      model: 'Logitech Mechanical Keyboard',
-      serialNumber: 'LMK-001',
-      status: 'inStock' as const,
-      purchaseDate: '2024-02-20',
-    },
+      // Random bonuses for some users (30% chance)
+      if (Math.random() > 0.7) {
+        const bonus = await payload.create({
+          collection: 'payroll-settings',
+          data: {
+            employee: user.id,
+            payrollType: 'bonus',
+            description: `Performance Bonus - ${user.fullName}`,
+            paymentDetails: {
+              amount: Math.floor(Math.random() * 2000) + 500,
+              paymentType: 'bankTransfer',
+              paymentFrequency: 'monthly',
+            },
+            isActive: true,
+            effectiveDate: {
+              startDate: user.joinedAt || new Date().toISOString(),
+            },
+          },
+        })
+        payrollSettings.push(bonus)
+      }
 
-    // Items needing repair
-    {
-      itemType: 'laptop' as const,
-      model: 'MacBook Pro 14" M1',
-      serialNumber: 'MBP14-001',
-      status: 'needsRepair' as const,
-      purchaseDate: '2023-06-15',
-      warrantyExpiry: '2026-06-15',
-    },
+      console.log(`  ✓ Created payroll settings for: ${user.fullName}`)
+    } catch (error) {
+      console.error(`  ✗ Failed to create payroll settings for ${user.fullName}:`, error)
+    }
+  }
+
+  return payrollSettings
+}
+
+// Payroll History - Create payroll records for last 3 months
+async function seedPayrollHistory(payload: Payload, users: any[]) {
+  const currentDate = new Date()
+  const currentYear = currentDate.getFullYear()
+  const currentMonth = currentDate.getMonth() + 1 // 1-12
+
+  // Get last 3 months
+  const months = []
+  for (let i = 2; i >= 0; i--) {
+    const date = new Date(currentYear, currentMonth - 1 - i, 1)
+    months.push({
+      month: String(date.getMonth() + 1).padStart(2, '0'),
+      year: date.getFullYear(),
+    })
+  }
+
+  const payrolls = []
+
+  for (const user of users) {
+    // Get this user's payroll settings
+    const settings = await payload.find({
+      collection: 'payroll-settings',
+      where: {
+        and: [{ employee: { equals: user.id } }, { isActive: { equals: true } }],
+      },
+    })
+
+    for (const period of months) {
+      try {
+        // Build payroll items from settings
+        const payrollItems = settings.docs.map((setting: any) => ({
+          payrollSetting: setting.id,
+          description: setting.description || `${setting.payrollType} payment`,
+          payrollType: setting.payrollType,
+          amount: setting.paymentDetails?.amount || 0,
+          paymentType: setting.paymentDetails?.paymentType || 'bankTransfer',
+        }))
+
+        // Calculate total
+        const totalFromSettings = payrollItems.reduce(
+          (sum: number, item: any) => sum + item.amount,
+          0,
+        )
+
+        // Random adjustments (20% chance)
+        const bonusAmount = Math.random() > 0.8 ? Math.floor(Math.random() * 500) + 100 : 0
+        const deductionAmount = Math.random() > 0.9 ? Math.floor(Math.random() * 200) + 50 : 0
+
+        const totalAmount = totalFromSettings + bonusAmount - deductionAmount
+
+        // Status based on month (older = paid, recent = approved)
+        const monthIndex = months.indexOf(period)
+        const status = monthIndex === 0 ? 'paid' : monthIndex === 1 ? 'approved' : 'paid'
+
+        const payrollData: any = {
+          employee: user.id,
+          period: {
+            month: period.month as
+              | '01'
+              | '02'
+              | '03'
+              | '04'
+              | '05'
+              | '06'
+              | '07'
+              | '08'
+              | '09'
+              | '10'
+              | '11'
+              | '12',
+            year: period.year,
+          },
+          payrollItems,
+          adjustments: {
+            bonusAmount,
+            deductionAmount,
+            adjustmentNote:
+              bonusAmount > 0
+                ? 'Performance bonus'
+                : deductionAmount > 0
+                  ? 'Late arrival deduction'
+                  : undefined,
+          },
+          totalAmount,
+          status,
+        }
+
+        // Add payment details if paid
+        if (status === 'paid') {
+          payrollData.paymentDetails = {
+            paymentDate: new Date(period.year, parseInt(period.month) - 1, 28).toISOString(),
+            paymentReference: `TXN-${Math.floor(Math.random() * 1000000)}`,
+            paymentNotes: 'Payment processed successfully',
+          }
+          payrollData.processedAt = new Date(
+            period.year,
+            parseInt(period.month) - 1,
+            28,
+          ).toISOString()
+        }
+
+        const created = await payload.create({
+          collection: 'payroll',
+          data: payrollData,
+        })
+        payrolls.push(created)
+      } catch (error) {
+        console.error(
+          `  ✗ Failed to create payroll for ${user.fullName} (${period.month}/${period.year}):`,
+          error,
+        )
+      }
+    }
+    console.log(`  ✓ Created 3 months of payroll history for: ${user.fullName}`)
+  }
+
+  return payrolls
+}
+
+// Inventory - 30 items (laptops, phones, sim cards)
+async function seedInventory(payload: Payload, users: any[]) {
+  const laptopModels = [
+    'MacBook Pro 16" M3 Pro',
+    'MacBook Pro 14" M3',
+    'MacBook Air 15" M2',
+    'Dell XPS 15',
+    'Lenovo ThinkPad X1 Carbon',
+    'HP EliteBook 840',
+    'ASUS ZenBook Pro',
   ]
 
+  const phoneModels = [
+    'iPhone 15 Pro Max',
+    'iPhone 15 Pro',
+    'Samsung Galaxy S24 Ultra',
+    'Google Pixel 8 Pro',
+    'OnePlus 12',
+  ]
+
+  const simCardProviders = ['Verizon', 'AT&T', 'T-Mobile', 'Vodafone', 'O2']
+
+  const inventoryData = []
+
+  // Assign laptops to first 15 users
+  for (let i = 0; i < Math.min(15, users.length); i++) {
+    inventoryData.push({
+      itemType: 'laptop' as const,
+      model: laptopModels[i % laptopModels.length],
+      serialNumber: `LAPTOP-${String(i + 1).padStart(4, '0')}`,
+      holder: users[i].id,
+      status: 'inUse' as const,
+      purchaseDate: new Date(2024, Math.floor(Math.random() * 10), 1).toISOString(),
+      warrantyExpiry: new Date(2027, Math.floor(Math.random() * 12), 1).toISOString(),
+      notes: `Assigned to ${users[i].fullName}`,
+    })
+  }
+
+  // Assign phones to first 10 users
+  for (let i = 0; i < Math.min(10, users.length); i++) {
+    inventoryData.push({
+      itemType: 'phone' as const,
+      model: phoneModels[i % phoneModels.length],
+      serialNumber: `PHONE-${String(i + 1).padStart(4, '0')}`,
+      holder: users[i].id,
+      status: 'inUse' as const,
+      purchaseDate: new Date(2024, Math.floor(Math.random() * 10), 1).toISOString(),
+      warrantyExpiry: new Date(2025, Math.floor(Math.random() * 12), 1).toISOString(),
+      notes: `Work phone for ${users[i].fullName}`,
+    })
+  }
+
+  // Assign SIM cards to random 5 users
+  const simUsers = getRandomItems(users, 5)
+  for (let i = 0; i < simUsers.length; i++) {
+    inventoryData.push({
+      itemType: 'simCard' as const,
+      model: `${simCardProviders[i % simCardProviders.length]} SIM Card`,
+      serialNumber: `SIM-${String(i + 1).padStart(4, '0')}`,
+      holder: simUsers[i].id,
+      status: 'inUse' as const,
+      purchaseDate: new Date(2024, Math.floor(Math.random() * 10), 1).toISOString(),
+      notes: `Active SIM for ${simUsers[i].fullName}`,
+    })
+  }
+
+  // Create inventory items
   const inventory = []
   for (const item of inventoryData) {
     try {
       const created = await payload.create({
         collection: 'inventory',
-        data: item as any,
+        data: item,
       })
       inventory.push(created)
-      console.log(`  ✓ Created inventory: ${item.itemType} - ${item.model}`)
     } catch (error) {
       console.error(`  ✗ Failed to create inventory item:`, error)
     }
   }
 
+  console.log(`  ✓ Created ${inventory.length} inventory items`)
   return inventory
 }
 
-async function seedLeaves(payload: Payload, staff: any[]) {
-  const leavesData = [
-    // Past approved leaves
-    {
-      user: staff[0]?.id, // Alex Johnson
-      type: 'annual' as const,
-      startDate: '2024-08-15',
-      endDate: '2024-08-25',
-      status: 'approved' as const,
-      reason: 'Summer vacation with family',
-    },
-    {
-      user: staff[1]?.id, // Sarah Chen
-      type: 'sick' as const,
-      startDate: '2024-09-05',
-      endDate: '2024-09-06',
-      status: 'approved' as const,
-      reason: 'Medical appointment and recovery',
-    },
-    {
-      user: staff[3]?.id, // Emma Thompson
-      type: 'other' as const,
-      startDate: '2024-07-20',
-      endDate: '2024-07-22',
-      status: 'approved' as const,
-      reason: 'Wedding attendance',
-    },
+// Leaves - Random leave days for users
+async function seedLeaves(payload: Payload, users: any[]) {
+  const leaveTypes: Array<'annual' | 'sick' | 'unpaid' | 'other'> = [
+    'annual',
+    'sick',
+    'unpaid',
+    'other',
+  ]
 
-    // Pending leaves
-    {
-      user: staff[4]?.id, // David Kim
-      type: 'annual' as const,
-      startDate: '2024-12-20',
-      endDate: '2024-12-30',
-      status: 'requested' as const,
-      reason: 'Holiday vacation',
-    },
-    {
-      user: staff[6]?.id, // James Wilson
-      type: 'other' as const,
-      startDate: '2024-11-15',
-      endDate: '2024-11-15',
-      status: 'requested' as const,
-      reason: 'Personal matter',
-    },
-
-    // Rejected leave (example)
-    {
-      user: staff[5]?.id, // Lisa Wang
-      type: 'annual' as const,
-      startDate: '2024-11-01',
-      endDate: '2024-11-05',
-      status: 'rejected' as const,
-      reason: 'Product launch week',
-    },
-
-    // Future approved leaves
-    {
-      user: staff[7]?.id, // Maria Garcia
-      type: 'other' as const,
-      startDate: '2025-01-15',
-      endDate: '2025-04-15',
-      status: 'approved' as const,
-      reason: 'Maternity leave',
-    },
+  const leaveReasons = [
+    'Family vacation',
+    'Medical appointment',
+    'Personal matters',
+    'Wedding attendance',
+    'Sick leave - flu',
+    'Emergency family matter',
+    'Mental health day',
+    'Moving house',
+    'Attending conference',
+    'Religious holiday',
   ]
 
   const leaves = []
-  for (const leave of leavesData) {
-    try {
-      const created = await payload.create({
-        collection: 'leave-days',
-        data: leave,
-      })
-      leaves.push(created)
-      console.log(`  ✓ Created leave: ${leave.type} for staff ${leave.user}`)
-    } catch (error) {
-      console.error(`  ✗ Failed to create leave:`, error)
+
+  // Create random leaves for each user (1-3 leaves per user)
+  for (const user of users) {
+    const numLeaves = Math.floor(Math.random() * 3) + 1 // 1-3 leaves
+
+    for (let i = 0; i < numLeaves; i++) {
+      try {
+        // Random date in the past 6 months or next 3 months
+        const monthOffset = Math.floor(Math.random() * 9) - 6 // -6 to +3 months
+        const startDate = new Date()
+        startDate.setMonth(startDate.getMonth() + monthOffset)
+        startDate.setDate(Math.floor(Math.random() * 28) + 1)
+
+        // Leave duration: 1-10 days
+        const duration = Math.floor(Math.random() * 10) + 1
+        const endDate = new Date(startDate)
+        endDate.setDate(endDate.getDate() + duration)
+
+        // Status based on date
+        const isPast = startDate < new Date()
+        const status: 'approved' | 'rejected' | 'requested' = isPast
+          ? (getRandomItem(['approved', 'approved', 'rejected']) as 'approved' | 'rejected')
+          : (getRandomItem(['requested', 'approved']) as 'requested' | 'approved')
+
+        const leaveData = {
+          user: user.id,
+          type: getRandomItem(leaveTypes),
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          status,
+          reason: getRandomItem(leaveReasons),
+          note:
+            status === 'rejected'
+              ? 'Insufficient notice period'
+              : status === 'approved'
+                ? 'Approved by manager'
+                : undefined,
+        }
+
+        const created = await payload.create({
+          collection: 'leave-days',
+          data: leaveData,
+        })
+        leaves.push(created)
+      } catch (error) {
+        console.error(`  ✗ Failed to create leave for ${user.fullName}:`, error)
+      }
     }
+    console.log(`  ✓ Created ${numLeaves} leave records for: ${user.fullName}`)
   }
 
   return leaves
-}
-
-async function seedPayroll(payload: Payload, staff: any[]) {
-  const currentDate = new Date()
-  const currentYear = currentDate.getFullYear()
-  const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'] // Up to October
-
-  const payrollData = []
-
-  // Generate payroll for each staff member for the past months
-  for (const staffMember of staff) {
-    for (const month of months) {
-      payrollData.push({
-        employee: staffMember.id,
-        period: {
-          month: month as
-            | '01'
-            | '02'
-            | '03'
-            | '04'
-            | '05'
-            | '06'
-            | '07'
-            | '08'
-            | '09'
-            | '10'
-            | '11'
-            | '12',
-          year: currentYear,
-        },
-        workDays: {
-          totalWorkingDays: 22,
-          daysWorked: Math.floor(Math.random() * 3) + 20, // 20-22 days
-          leaveDays: Math.floor(Math.random() * 3), // 0-2 leave days
-        },
-        adjustments: {
-          bonusAmount:
-            month === '06' || month === '12' ? Math.floor(Math.random() * 1000) + 500 : 0, // Bonuses in June/Dec
-          deductionAmount: Math.random() > 0.8 ? Math.floor(Math.random() * 200) + 50 : 0, // Occasional deductions
-          overtimePay: Math.random() > 0.7 ? Math.floor(Math.random() * 500) + 100 : 0, // Occasional overtime
-        },
-        status: months.indexOf(month) < 8 ? ('approved' as const) : ('generated' as const), // Older months approved, recent ones generated
-      })
-    }
-  }
-
-  const payrolls = []
-  for (const payroll of payrollData) {
-    try {
-      const created = await payload.create({
-        collection: 'payroll',
-        data: payroll,
-      })
-      payrolls.push(created)
-      console.log(
-        `  ✓ Created payroll: ${payroll.period.month}/${payroll.period.year} for employee ${payroll.employee}`,
-      )
-    } catch (error) {
-      console.error(`  ✗ Failed to create payroll:`, error)
-    }
-  }
-
-  return payrolls
 }

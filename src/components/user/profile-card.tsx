@@ -21,10 +21,10 @@ export function ProfileCard({ user }: ProfileCardProps) {
       .toUpperCase()
   }
 
-  const department =
-    typeof user.department === 'object' && user.department && 'name' in user.department
-      ? (user.department as { name: string }).name
-      : user.department || 'No department'
+  const departments =
+    Array.isArray(user.departments) && user.departments.length > 0
+      ? user.departments.map((dept) => (typeof dept === 'object' ? dept.name : dept))
+      : ['No department']
 
   const role =
     typeof user.role === 'object' && user.role && 'name' in user.role
@@ -50,7 +50,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
             <div className="flex items-center space-x-2 mt-2">
               <span className="text-sm text-muted-foreground">{String(role)}</span>
               <span className="text-sm text-muted-foreground">•</span>
-              <span className="text-sm text-muted-foreground">{String(department)}</span>
+              <span className="text-sm text-muted-foreground">{String(departments)}</span>
             </div>
           </div>
           <div className="flex-1">

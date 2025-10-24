@@ -11,31 +11,19 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 
-const PayrollSchemaBase = z.object({
+const PayrollSchema = z.object({
   employee: z.string().min(1, 'Employee is required'),
   month: z.enum(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'] as const, {
     error: 'Month is required',
   }),
   year: z.coerce.number().min(2020).max(2030, 'Year must be between 2020 and 2030'),
-  totalWorkingDays: z.coerce.number().min(1).max(31, 'Total working days must be between 1 and 31'),
-  daysWorked: z.coerce.number().min(0).max(31, 'Days worked must be between 0 and 31'),
-  leaveDays: z.coerce.number().min(0).max(31, 'Leave days must be between 0 and 31'),
   bonusAmount: z.coerce.number().min(0, 'Bonus amount cannot be negative').optional(),
   deductionAmount: z.coerce.number().min(0, 'Deduction amount cannot be negative').optional(),
-  overtimePay: z.coerce.number().min(0, 'Overtime pay cannot be negative').optional(),
   adjustmentNote: z.string().optional(),
   status: z.enum(['generated', 'reviewed', 'approved', 'paid', 'cancelled'] as const),
-})
-
-const PayrollSchema = PayrollSchemaBase.superRefine((val, ctx) => {
-  // Validate that days worked + leave days doesn't exceed total working days
-  if (val.daysWorked + val.leaveDays > val.totalWorkingDays) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['daysWorked'],
-      message: 'Days worked + leave days cannot exceed total working days',
-    })
-  }
+  paymentDate: z.string().optional(),
+  paymentReference: z.string().optional(),
+  paymentNotes: z.string().optional(),
 })
 
 export type PayrollFormValues = z.infer<typeof PayrollSchema>
@@ -65,7 +53,6 @@ export function PayrollForm({
     control,
     handleSubmit,
     trigger,
-    setValue,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<PayrollFormValues>({
@@ -80,34 +67,23 @@ export function PayrollForm({
         : '',
       month: (initialData?.period?.month as any) || '01',
       year: initialData?.period?.year || new Date().getFullYear(),
-      totalWorkingDays: initialData?.workDays?.totalWorkingDays || 22,
-      daysWorked: initialData?.workDays?.daysWorked || 22,
-      leaveDays: initialData?.workDays?.leaveDays || 0,
       bonusAmount: initialData?.adjustments?.bonusAmount || 0,
       deductionAmount: initialData?.adjustments?.deductionAmount || 0,
-      overtimePay: initialData?.adjustments?.overtimePay || 0,
       adjustmentNote: initialData?.adjustments?.adjustmentNote || '',
       status: (initialData?.status as any) || 'generated',
+      paymentDate: initialData?.paymentDetails?.paymentDate
+        ? new Date(initialData.paymentDetails.paymentDate).toISOString().split('T')[0]
+        : '',
+      paymentReference: initialData?.paymentDetails?.paymentReference || '',
+      paymentNotes: initialData?.paymentDetails?.paymentNotes || '',
     },
   })
 
   const formRef = React.useRef<HTMLFormElement>(null)
   const [nativeSubmitting, setNativeSubmitting] = React.useState(false)
 
-  // Watch values for calculations
-  const totalWorkingDays = watch('totalWorkingDays')
-  const daysWorked = watch('daysWorked')
-  const leaveDays = watch('leaveDays')
-
-  // Auto-calculate days worked when leave days change
-  React.useEffect(() => {
-    if (totalWorkingDays && leaveDays !== undefined) {
-      const calculatedDaysWorked = totalWorkingDays - leaveDays
-      if (calculatedDaysWorked >= 0) {
-        setValue('daysWorked', calculatedDaysWorked)
-      }
-    }
-  }, [totalWorkingDays, leaveDays, setValue])
+  // Watch status to show/hide payment fields
+  const status = watch('status')
 
   const statusOptions: Option[] = [
     { label: 'Generated', value: 'generated' },
@@ -211,56 +187,31 @@ export function PayrollForm({
             {/* Work Days */}
             <Card>
               <CardHeader>
-                <CardTitle>Work Days</CardTitle>
+                <CardTitle>Payroll Items</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="totalWorkingDays"
-                    className="px-1 text-sm font-medium text-foreground"
-                  >
-                    Total Working Days *
-                  </label>
-                  <input
-                    id="totalWorkingDays"
-                    type="number"
-                    className="mt-2 w-full rounded-md border bg-background p-2"
-                    {...register('totalWorkingDays', { valueAsNumber: true })}
-                  />
-                  {errors.totalWorkingDays && (
-                    <p className="text-red-500 text-sm mt-1">{errors.totalWorkingDays.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="leaveDays" className="px-1 text-sm font-medium text-foreground">
-                    Leave Days Taken
-                  </label>
-                  <input
-                    id="leaveDays"
-                    type="number"
-                    className="mt-2 w-full rounded-md border bg-background p-2"
-                    {...register('leaveDays', { valueAsNumber: true })}
-                  />
-                  {errors.leaveDays && (
-                    <p className="text-red-500 text-sm mt-1">{errors.leaveDays.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="daysWorked" className="px-1 text-sm font-medium text-foreground">
-                    Days Worked *
-                  </label>
-                  <input
-                    id="daysWorked"
-                    type="number"
-                    className="mt-2 w-full rounded-md border bg-background p-2"
-                    {...register('daysWorked', { valueAsNumber: true })}
-                  />
-                  {errors.daysWorked && (
-                    <p className="text-red-500 text-sm mt-1">{errors.daysWorked.message}</p>
-                  )}
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Payroll items are automatically generated from active PayrollSettings when you
+                  create a new payroll record. You can make manual adjustments below.
+                </p>
+                {mode === 'edit' && initialData?.payrollItems && (
+                  <div className="border rounded-md p-4 space-y-2">
+                    <h4 className="font-medium text-sm">Generated Items:</h4>
+                    <ul className="space-y-1 text-sm">
+                      {(initialData.payrollItems as any[]).map((item, idx) => (
+                        <li key={idx} className="flex justify-between">
+                          <span>{item.description || item.payrollType}</span>
+                          <span className="font-medium">
+                            {new Intl.NumberFormat('tr-TR', {
+                              style: 'currency',
+                              currency: 'TRY',
+                            }).format(item.amount || 0)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -271,10 +222,10 @@ export function PayrollForm({
               <CardTitle>Manual Adjustments</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="bonusAmount" className="px-1 text-sm font-medium text-foreground">
-                    Bonus Amount
+                    One-time Bonus Amount
                   </label>
                   <input
                     id="bonusAmount"
@@ -285,22 +236,6 @@ export function PayrollForm({
                   />
                   {errors.bonusAmount && (
                     <p className="text-red-500 text-sm mt-1">{errors.bonusAmount.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="overtimePay" className="px-1 text-sm font-medium text-foreground">
-                    Overtime Pay
-                  </label>
-                  <input
-                    id="overtimePay"
-                    type="number"
-                    step="0.01"
-                    className="mt-2 w-full rounded-md border bg-background p-2"
-                    {...register('overtimePay', { valueAsNumber: true })}
-                  />
-                  {errors.overtimePay && (
-                    <p className="text-red-500 text-sm mt-1">{errors.overtimePay.message}</p>
                   )}
                 </div>
 
@@ -335,11 +270,77 @@ export function PayrollForm({
                   id="adjustmentNote"
                   className="mt-2 w-full rounded-md border bg-background p-2"
                   rows={3}
+                  placeholder="Explain reason for bonus or deduction..."
                   {...register('adjustmentNote')}
                 />
               </div>
             </CardContent>
           </Card>
+
+          {/* Payment Tracking */}
+          {status === 'paid' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Tracking</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="paymentDate"
+                      className="px-1 text-sm font-medium text-foreground"
+                    >
+                      Payment Date
+                    </label>
+                    <input
+                      id="paymentDate"
+                      type="date"
+                      className="mt-2 w-full rounded-md border bg-background p-2"
+                      {...register('paymentDate')}
+                    />
+                    {errors.paymentDate && (
+                      <p className="text-red-500 text-sm mt-1">{errors.paymentDate.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="paymentReference"
+                      className="px-1 text-sm font-medium text-foreground"
+                    >
+                      Payment Reference
+                    </label>
+                    <input
+                      id="paymentReference"
+                      type="text"
+                      placeholder="Transaction ID, cheque number, etc."
+                      className="mt-2 w-full rounded-md border bg-background p-2"
+                      {...register('paymentReference')}
+                    />
+                    {errors.paymentReference && (
+                      <p className="text-red-500 text-sm mt-1">{errors.paymentReference.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="paymentNotes"
+                    className="px-1 text-sm font-medium text-foreground"
+                  >
+                    Payment Notes
+                  </label>
+                  <textarea
+                    id="paymentNotes"
+                    className="mt-2 w-full rounded-md border bg-background p-2"
+                    rows={3}
+                    placeholder="Additional payment notes..."
+                    {...register('paymentNotes')}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex justify-end space-x-4 pt-4">
             <Link href="/payroll">

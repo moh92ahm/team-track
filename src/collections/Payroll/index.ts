@@ -12,7 +12,8 @@ export const Payroll: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'employee',
-    defaultColumns: ['employee', 'period', 'status'],
+    defaultColumns: ['employee', 'period', 'totalAmount', 'status'],
+    group: 'Payroll Management',
   },
   fields: [
     {
@@ -20,6 +21,9 @@ export const Payroll: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       required: true,
+      admin: {
+        position: 'sidebar',
+      },
     },
     {
       name: 'period',
@@ -52,7 +56,69 @@ export const Payroll: CollectionConfig = {
         },
       ],
     },
-    // Override fields (for exceptions only)
+
+    // Generated from PayrollSettings
+    {
+      name: 'payrollItems',
+      type: 'array',
+      label: 'Payroll Items',
+      fields: [
+        {
+          name: 'payrollSetting',
+          type: 'relationship',
+          relationTo: 'payroll-settings',
+          required: true,
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'description',
+          type: 'text',
+          required: true,
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'payrollType',
+          type: 'select',
+          options: [
+            { label: 'Primary Salary', value: 'primary' },
+            { label: 'Bonus Payment', value: 'bonus' },
+            { label: 'Overtime Pay', value: 'overtime' },
+            { label: 'Commission', value: 'commission' },
+            { label: 'Allowance', value: 'allowance' },
+            { label: 'Other', value: 'other' },
+          ],
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'amount',
+          type: 'number',
+          required: true,
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'paymentType',
+          type: 'select',
+          options: [
+            { label: 'Bank Transfer', value: 'bankTransfer' },
+            { label: 'Cash', value: 'cash' },
+            { label: 'Cheque', value: 'cheque' },
+          ],
+          admin: {
+            readOnly: true,
+          },
+        },
+      ],
+    },
+
+    // Manual adjustments (for this specific payroll period)
     {
       name: 'adjustments',
       type: 'group',
@@ -71,28 +137,55 @@ export const Payroll: CollectionConfig = {
           label: 'Additional Deduction',
         },
         {
-          name: 'overtimePay',
-          type: 'number',
-          defaultValue: 0,
-        },
-        {
           name: 'adjustmentNote',
           type: 'textarea',
           label: 'Reason for Adjustment',
         },
       ],
     },
-    // Auto-calculated totals
+
+    // Calculated totals (auto-calculated)
     {
-      name: 'calculations',
+      name: 'totalAmount',
+      type: 'number',
+      admin: {
+        readOnly: true,
+        description: 'Total amount calculated from payroll items + adjustments',
+      },
+    },
+
+    // Payment tracking
+    {
+      name: 'paymentDetails',
       type: 'group',
-      admin: { readOnly: true },
+      label: 'Payment Tracking',
       fields: [
-        { name: 'grossPay', type: 'number' },
-        { name: 'totalDeductions', type: 'number' },
-        { name: 'netPay', type: 'number' },
+        {
+          name: 'paymentDate',
+          type: 'date',
+          admin: {
+            condition: (data) => data?.status === 'paid',
+          },
+        },
+        {
+          name: 'paymentReference',
+          type: 'text',
+          admin: {
+            condition: (data) => data?.status === 'paid',
+            description: 'Transaction ID, cheque number, or other payment reference',
+          },
+        },
+        {
+          name: 'paymentNotes',
+          type: 'textarea',
+          admin: {
+            condition: (data) => ['paid', 'cancelled'].includes(data?.status),
+          },
+        },
       ],
     },
+
+    // Status tracking
     {
       name: 'status',
       type: 'select',
@@ -104,85 +197,116 @@ export const Payroll: CollectionConfig = {
         { label: 'Paid', value: 'paid' },
         { label: 'Cancelled', value: 'cancelled' },
       ],
+      admin: {
+        position: 'sidebar',
+      },
+    },
+
+    // Processing timestamps
+    {
+      name: 'processedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => ['paid', 'cancelled'].includes(data?.status),
+      },
+    },
+    {
+      name: 'processedAt',
+      type: 'date',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => ['paid', 'cancelled'].includes(data?.status),
+      },
     },
   ],
   hooks: {
     beforeChange: [
-      async ({ data, operation, req }) => {
+      async ({ data, operation }) => {
         if (operation === 'create' || operation === 'update') {
-          // Get employee data for salary calculation
-          if (data.employee) {
-            const employee = await req.payload.findByID({
-              collection: 'users',
-              id: data.employee,
-              depth: 1,
-            })
+          // Calculate total amount from payroll items and adjustments
+          let totalFromItems = 0
 
-            if (employee && employee.employment) {
-              // employment may have optional fields; provide defaults and a type assertion
-              const {
-                baseSalary,
-                defaultAllowances = {},
-                defaultDeductions = {},
-              } = employee.employment as {
-                baseSalary?: number | null
-                defaultAllowances?: {
-                  transport?: number
-                  meal?: number
-                  housing?: number
-                  other?: number
-                }
-                defaultDeductions?: {
-                  insurance?: number
-                  pension?: number
-                  loan?: number
-                  other?: number
-                  taxRate?: number
-                }
-              }
-              const { workDays, adjustments } = data
+          if (data.payrollItems && Array.isArray(data.payrollItems)) {
+            totalFromItems = data.payrollItems.reduce((sum, item) => {
+              return sum + (item.amount || 0)
+            }, 0)
+          }
 
-              if (baseSalary && workDays) {
-                // Calculate proportional salary based on days worked
-                const dailySalary = baseSalary / workDays.totalWorkingDays
-                const earnedSalary = dailySalary * workDays.daysWorked
+          // Add manual adjustments
+          const bonusAmount = data.adjustments?.bonusAmount || 0
+          const deductionAmount = data.adjustments?.deductionAmount || 0
 
-                // Calculate total allowances (default + adjustments)
-                const totalAllowances =
-                  (defaultAllowances?.transport || 0) +
-                  (defaultAllowances?.meal || 0) +
-                  (defaultAllowances?.housing || 0) +
-                  (defaultAllowances?.other || 0) +
-                  (adjustments?.bonusAmount || 0) +
-                  (adjustments?.overtimePay || 0)
+          // Calculate final total
+          const totalAmount = totalFromItems + bonusAmount - deductionAmount
 
-                // Calculate gross pay
-                const grossPay = earnedSalary + totalAllowances
+          // Update the total amount field
+          data.totalAmount = Math.round(totalAmount * 100) / 100
 
-                // Calculate total deductions (default + adjustments)
-                const totalDeductions =
-                  (defaultDeductions?.insurance || 0) +
-                  (defaultDeductions?.pension || 0) +
-                  (defaultDeductions?.loan || 0) +
-                  (defaultDeductions?.other || 0) +
-                  (adjustments?.deductionAmount || 0) +
-                  (grossPay * (defaultDeductions?.taxRate || 0)) / 100 // Tax calculation
-
-                // Calculate net pay
-                const netPay = grossPay - totalDeductions
-
-                // Update calculated fields
-                data.calculations = {
-                  grossPay: Math.round(grossPay * 100) / 100,
-                  totalDeductions: Math.round(totalDeductions * 100) / 100,
-                  netPay: Math.round(netPay * 100) / 100,
-                }
-              }
-            }
+          // Auto-set processedAt and processedBy when status changes to paid/cancelled
+          if (['paid', 'cancelled'].includes(data.status) && !data.processedAt) {
+            data.processedAt = new Date()
+            // Note: processedBy would typically be set from the authenticated user context
+            // data.processedBy = req.user?.id
           }
         }
 
         return data
+      },
+    ],
+
+    // Hook to auto-generate payroll items from PayrollSettings
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        // Auto-populate payroll items when creating a new payroll record
+        if (
+          operation === 'create' &&
+          doc.employee &&
+          (!doc.payrollItems || doc.payrollItems.length === 0)
+        ) {
+          try {
+            // Find active payroll settings for this employee
+            const payrollSettings = await req.payload.find({
+              collection: 'payroll-settings',
+              where: {
+                and: [
+                  { employee: { equals: doc.employee } },
+                  { isActive: { equals: true } },
+                  {
+                    or: [
+                      { 'effectiveDate.endDate': { exists: false } },
+                      { 'effectiveDate.endDate': { greater_than: new Date() } },
+                    ],
+                  },
+                ],
+              },
+              depth: 1,
+            })
+
+            if (payrollSettings.docs.length > 0) {
+              const payrollItems = payrollSettings.docs.map((setting) => ({
+                payrollSetting: setting.id,
+                description: setting.description || `${setting.payrollType} payment`,
+                payrollType: setting.payrollType,
+                amount: setting.paymentDetails?.amount || 0,
+                paymentType: setting.paymentDetails?.paymentType || 'bankTransfer',
+              }))
+
+              // Update the payroll record with generated items
+              await req.payload.update({
+                collection: 'payroll',
+                id: doc.id,
+                data: {
+                  payrollItems,
+                },
+                user: req.user,
+              })
+            }
+          } catch (error) {
+            console.error('Error auto-generating payroll items:', error)
+          }
+        }
       },
     ],
   },

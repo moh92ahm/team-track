@@ -4,19 +4,15 @@ import * as React from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DataTable } from '@/components/data-table'
-import type { User, Payroll } from '@/payload-types'
-import { TurkishLira, CreditCard } from 'lucide-react'
+import type { Payroll, PayrollSetting } from '@/payload-types'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface PayrollCardProps {
-  user: User
   payrollHistory?: Payroll[]
+  payrollSettings?: PayrollSetting[]
 }
 
-export function PayrollCard({ user, payrollHistory = [] }: PayrollCardProps) {
-  // Extract employment data from user
-  const employment = (user as any)?.employment || {}
-  const { baseSalary, paymentType } = employment
-
+export function PayrollCard({ payrollHistory = [], payrollSettings = [] }: PayrollCardProps) {
   // Format currency
   const formatCurrency = (amount: number | undefined) => {
     if (!amount && amount !== 0) return 'Not set'
@@ -26,35 +22,6 @@ export function PayrollCard({ user, payrollHistory = [] }: PayrollCardProps) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(amount)
-  }
-
-  // Format payment type for display
-  const formatPaymentType = (type: string | undefined) => {
-    if (!type) return 'Not specified'
-    switch (type) {
-      case 'bankTransfer':
-        return 'Bank Transfer'
-      case 'cash':
-        return 'Cash'
-      case 'cheque':
-        return 'Cheque'
-      default:
-        return type
-    }
-  }
-
-  // Get payment type color
-  const getPaymentTypeColor = (type: string | undefined) => {
-    switch (type) {
-      case 'bankTransfer':
-        return 'default'
-      case 'cash':
-        return 'secondary'
-      case 'cheque':
-        return 'outline'
-      default:
-        return 'secondary'
-    }
   }
 
   // Get status variant
@@ -74,7 +41,7 @@ export function PayrollCard({ user, payrollHistory = [] }: PayrollCardProps) {
   }
 
   // Payment history table columns
-  const columns = [
+  const historyColumns = [
     {
       key: 'period' as keyof Payroll,
       header: 'Period',
@@ -99,20 +66,9 @@ export function PayrollCard({ user, payrollHistory = [] }: PayrollCardProps) {
       },
     },
     {
-      key: 'grossPay' as keyof Payroll,
-      header: 'Gross Pay',
-      render: (value: unknown, item: Payroll) => {
-        const calc = item.calculations as { grossPay: number }
-        return calc?.grossPay ? formatCurrency(calc.grossPay) : '-'
-      },
-    },
-    {
-      key: 'netPay' as keyof Payroll,
-      header: 'Net Pay',
-      render: (value: unknown, item: Payroll) => {
-        const calc = item.calculations as { netPay: number }
-        return calc?.netPay ? formatCurrency(calc.netPay) : '-'
-      },
+      key: 'totalAmount' as keyof Payroll,
+      header: 'Total Amount',
+      render: (value: unknown) => formatCurrency(value as number),
     },
     {
       key: 'status' as keyof Payroll,
@@ -125,53 +81,117 @@ export function PayrollCard({ user, payrollHistory = [] }: PayrollCardProps) {
     },
   ]
 
+  // Payroll settings table columns
+  const settingsColumns = [
+    {
+      key: 'payrollType' as keyof PayrollSetting,
+      header: 'Type',
+      render: (value: unknown) => {
+        const typeLabels = {
+          primary: 'Primary Salary',
+          bonus: 'Bonus Payment',
+          overtime: 'Overtime Pay',
+          commission: 'Commission',
+          allowance: 'Allowance',
+          other: 'Other',
+        }
+        return typeLabels[value as keyof typeof typeLabels] || String(value)
+      },
+    },
+    {
+      key: 'description' as keyof PayrollSetting,
+      header: 'Description',
+      render: (value: unknown) => String(value) || '-',
+    },
+    {
+      key: 'amount' as keyof PayrollSetting,
+      header: 'Amount',
+      render: (value: unknown, item: PayrollSetting) => {
+        return formatCurrency((item.paymentDetails as any)?.amount)
+      },
+    },
+    {
+      key: 'paymentFrequency' as keyof PayrollSetting,
+      header: 'Frequency',
+      render: (value: unknown, item: PayrollSetting) => {
+        const freq = (item.paymentDetails as any)?.paymentFrequency
+        const freqLabels = {
+          monthly: 'Monthly',
+          quarterly: 'Quarterly',
+          annual: 'Annual',
+          oneTime: 'One Time',
+        }
+        return freqLabels[freq as keyof typeof freqLabels] || freq || '-'
+      },
+    },
+    {
+      key: 'isActive' as keyof PayrollSetting,
+      header: 'Status',
+      render: (value: unknown) => {
+        const isActive = Boolean(value)
+        return (
+          <Badge variant={isActive ? 'default' : 'secondary'}>
+            {isActive ? 'Active' : 'Inactive'}
+          </Badge>
+        )
+      },
+    },
+  ]
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <TurkishLira className="h-5 w-5" />
-            Payroll Information
-          </h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">Payroll Information</h2>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Basic Salary and Payment Type */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Monthly Base Salary</p>
-            <p className="text-xl font-semibold">{formatCurrency(baseSalary)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Payment Type</p>
-            <Badge
-              variant={getPaymentTypeColor(paymentType) as 'default' | 'secondary' | 'outline'}
-              className="flex items-center gap-1 w-fit"
-            >
-              <CreditCard className="h-3 w-3" />
-              {formatPaymentType(paymentType)}
-            </Badge>
-          </div>
-        </div>
+        <Tabs defaultValue="settings" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="settings">Payroll Settings</TabsTrigger>
+            <TabsTrigger value="history">Payment History</TabsTrigger>
+          </TabsList>
 
-        {/* Payment History Table */}
-        <div>
-          <h3 className="text-md font-semibold mb-3">Payment History</h3>
-          {payrollHistory.length > 0 ? (
-            <div className="w-full overflow-auto">
-              <DataTable<Payroll>
-                data={payrollHistory.map((item) => ({
-                  ...item,
-                  id: Number(item.id),
-                }))}
-                columns={columns}
-                enablePagination={false}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No payment records found.</p>
-          )}
-        </div>
+          <TabsContent value="settings" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              Active payroll configurations for this employee
+            </p>
+            {payrollSettings.length > 0 ? (
+              <div className="w-full overflow-auto">
+                <DataTable<PayrollSetting>
+                  data={payrollSettings.map((item) => ({
+                    ...item,
+                    id: Number(item.id),
+                  }))}
+                  columns={settingsColumns}
+                  enablePagination={false}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No payroll settings configured.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              Historical payroll records and payment status
+            </p>
+            {payrollHistory.length > 0 ? (
+              <div className="w-full overflow-auto">
+                <DataTable<Payroll>
+                  data={payrollHistory.map((item) => ({
+                    ...item,
+                    id: Number(item.id),
+                  }))}
+                  columns={historyColumns}
+                  enablePagination={false}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No payment records found.</p>
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   )
