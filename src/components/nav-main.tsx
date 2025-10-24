@@ -34,7 +34,12 @@ export function NavMain({
             // If item has subitems, make it collapsible
             if (item.items && item.items.length > 0) {
               return (
-                <Collapsible key={item.title} asChild defaultOpen={false}>
+                <Collapsible
+                  key={item.title}
+                  asChild
+                  defaultOpen={true}
+                  className="group/collapsible"
+                >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton tooltip={item.title}>
