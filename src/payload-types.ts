@@ -164,6 +164,10 @@ export interface User {
   address?: string | null;
   documents?: (number | Media)[] | null;
   isActive?: boolean | null;
+  /**
+   * System users are hidden from regular user listings
+   */
+  isSystemUser?: boolean | null;
   joinedAt?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -573,6 +577,7 @@ export interface UsersSelect<T extends boolean = true> {
   address?: T;
   documents?: T;
   isActive?: T;
+  isSystemUser?: T;
   joinedAt?: T;
   updatedAt?: T;
   createdAt?: T;

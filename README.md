@@ -1,12 +1,18 @@
-# Payload Blank Template
+# Team Track - Employee Management System
 
-This template comes configured with the bare minimum to get started on anything you need.
+A comprehensive employee management system built with Next.js 15, PayloadCMS 3.x, and PostgreSQL.
 
-## Quick start
+## Features
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+- 👥 **User Management**: Complete employee profiles with departments, roles, and documents
+- 📊 **Payroll System**: Automated payroll generation, additional payments, and adjustments
+- 📦 **Inventory Management**: Track company assets, assignments, and status
+- 🏖️ **Leave Management**: Handle leave requests, approvals, and tracking
+- 🔐 **RBAC**: Role-based access control with granular permissions
+- 📱 **Responsive Design**: Mobile-friendly interface with drawer navigation
+- 🎨 **Modern UI**: Built with Shadcn UI components and Tailwind CSS
 
-## Quick Start - local setup
+## Quick Start - Local Development
 
 To spin up this template locally, follow these steps:
 
@@ -61,6 +67,83 @@ Alternatively, you can use [Docker](https://www.docker.com) to spin up this temp
 1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
 
 That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+
+## 🚀 Production Deployment
+
+### Deploy to Vercel with Supabase (Automatic)
+
+This project is configured for **zero-config deployment** to Vercel with automatic migrations!
+
+#### Quick Deploy (3 Steps)
+
+1. **Setup Supabase**: Create a project and get your database connection string
+
+2. **Configure Vercel**: Add environment variables (see below)
+
+3. **Deploy**: Push to GitHub - Vercel auto-deploys and runs migrations!
+
+   ```bash
+   git push
+   ```
+   
+   That's it! ✅ Migrations run automatically  
+   ✅ Super admin created automatically  
+   ✅ App ready to use!
+
+#### Environment Variables
+
+Set these in your Vercel dashboard:
+
+```bash
+DATABASE_URI=postgresql://...         # Supabase connection string  
+PAYLOAD_SECRET=<base64-secret>       # Generate with ./scripts/generate-secrets.sh
+SUPER_ADMIN_PASSWORD=YourPassword123 # Your super admin password
+NEXT_PUBLIC_SERVER_URL=https://your-app.vercel.app
+# + Email provider settings (Resend recommended)
+```
+
+#### Detailed Guides
+
+- 🚀 **[Production Setup](./PRODUCTION_SETUP.md)** - **Start here!** How deployment works
+- 📖 **[Complete Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Comprehensive step-by-step instructions
+- ✅ **[Deployment Checklist](./DEPLOYMENT_CHECKLIST.md)** - Quick checklist for deployment
+- 💻 **[Vercel CLI Reference](./VERCEL_CLI_REFERENCE.md)** - Command-line tools and workflows
+
+#### Environment Variables
+
+See [`.env.example`](./.env.example) for all required environment variables. Key variables include:
+
+- `DATABASE_URI`: PostgreSQL connection string (Supabase)
+- `PAYLOAD_SECRET`: Base64-encoded secret for PayloadCMS
+- `NEXT_PUBLIC_SERVER_URL`: Your application URL
+- Email configuration (Resend, SendGrid, or SMTP)
+
+For security, all secrets should be generated using Base64 encoding:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+## 📚 Documentation
+
+- 🚀 **[Quick Start Guide](./QUICK_START.md)** - **Start here!** Fast reference for deployment
+- 📋 **[Production Setup](./PRODUCTION_SETUP.md)** - How deployment & migrations work
+- [RBAC Documentation](./RBAC_DOCUMENTATION.md) - Role-based access control
+- [Seed Data Documentation](./SEED_DATA_DOCUMENTATION.md) - Initial data setup
+- [Department Structure](./DEPARTMENT_STRUCTURE.md) - Organization structure
+- [Payroll Components](./PAYROLL_COMPONENTS_UPDATE.md) - Payroll system details
+- [Super Admin Guide](./SUPER_ADMIN_GUIDE.md) - Hidden administrator setup
+- [Run Migrations](./RUN_MIGRATIONS.md) - Database migration instructions
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15.5.4 with App Router
+- **CMS**: PayloadCMS 3.x
+- **Database**: PostgreSQL (local or Supabase)
+- **UI**: Shadcn UI + Tailwind CSS
+- **Forms**: React Hook Form + Zod validation
+- **Authentication**: PayloadCMS built-in auth
+- **Deployment**: Vercel (recommended)
 
 ## Questions
 

@@ -122,6 +122,23 @@ export const Users: CollectionConfig = {
       defaultValue: true,
     },
     {
+      name: 'isSystemUser',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'System users are hidden from regular user listings',
+        readOnly: true,
+      },
+      access: {
+        // Only super admins can see this field
+        read: ({ req: { user } }) => {
+          return user?.email === 'admin@teamtrack.local'
+        },
+        update: () => false, // Can't be changed via UI
+      },
+    },
+    {
       name: 'joinedAt',
       type: 'date',
       admin: {

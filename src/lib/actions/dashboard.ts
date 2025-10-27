@@ -36,10 +36,15 @@ export async function getUserStats(): Promise<UserStats> {
     throw new Error('Unauthorized')
   }
 
-  // Fetch all users (team)
+  // Fetch all users (team) - Exclude system users
   const allUsers = await payload.find({
     collection: 'users',
     limit: 1000, // Adjust based on your expected user count
+    where: {
+      isSystemUser: {
+        not_equals: true,
+      },
+    },
     user,
   })
 
