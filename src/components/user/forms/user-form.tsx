@@ -13,12 +13,14 @@ import { useForm, Controller, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserFormSchema, type UserFormValues } from './user-form.schema'
 import { SelectField } from '@/components/form/select-field'
+import { MultiSelectField } from '@/components/form/multi-select-field'
 import { InputField } from '@/components/form/input-field'
 import { Spinner } from '@/components/ui/spinner'
 import { Separator } from '@/components/ui/separator'
 import { BirthdatePicker } from '@/components/date-pickers/birthdate-picker'
 import { JoinedDatePicker } from '@/components/date-pickers/joined-date-picker'
 import { WorkPermitExpiryPicker } from '@/components/date-pickers/work-permit-expiry-picker'
+import { MultiFileUpload } from '@/components/ui/multi-file-upload'
 import { formatDateForInput } from '@/lib/date-utils'
 
 interface UserFormProps {
@@ -53,13 +55,12 @@ export function UserForm({
           ? initialData.photo
           : null,
     departments:
-      Array.isArray(initialData?.departments) &&
-      initialData.departments.length > 0
+      Array.isArray(initialData?.departments) && initialData.departments.length > 0
         ? initialData.departments.map((dept) => String(typeof dept === 'object' ? dept.id : dept))
-        : undefined,
+        : [],
     role:
       typeof initialData?.role === 'object' && initialData.role && 'id' in initialData.role
-        ? String((initialData.role).id)
+        ? String(initialData.role.id)
         : initialData?.role
           ? String(initialData.role)
           : undefined,
@@ -68,14 +69,22 @@ export function UserForm({
     primaryPhone: initialData?.primaryPhone || '',
     secondaryPhone: initialData?.secondaryPhone || '',
     secondaryEmail: initialData?.secondaryEmail || '',
-    employmentType: (initialData)?.employmentType || 'other',
-    nationality: (initialData)?.nationality || '',
-    identificationNumber: (initialData)?.identificationNumber || '',
-    workPermitExpiry: (initialData)?.workPermitExpiry
-      ? formatDateForInput((initialData).workPermitExpiry)
+    employmentType: initialData?.employmentType || 'other',
+    nationality: initialData?.nationality || '',
+    identificationNumber: initialData?.identificationNumber || '',
+    workPermitExpiry: initialData?.workPermitExpiry
+      ? formatDateForInput(initialData.workPermitExpiry)
       : undefined,
-    address: (initialData)?.address || '',
-    documents: [],
+    address: initialData?.address || '',
+    documents: Array.isArray(initialData?.documents)
+      ? initialData.documents.map((doc) => {
+          // Keep the full document object if available, otherwise just the ID
+          if (typeof doc === 'object' && doc && 'id' in doc) {
+            return doc // Return the full media object
+          }
+          return String(doc) // Fallback to string ID
+        })
+      : [],
     isActive: initialData?.isActive ?? true,
     joinedAt: initialData?.joinedAt
       ? formatDateForInput(initialData.joinedAt)
@@ -232,11 +241,11 @@ export function UserForm({
 
                 <InputField label="Job Title" name={'jobTitle'} register={register} />
 
-                <SelectField
+                <MultiSelectField
                   control={control}
                   name={'departments'}
-                  label="Department"
-                  placeholder="Select department"
+                  label="Departments"
+                  placeholder="Select departments"
                   options={departments}
                   error={errors.departments?.message as string | undefined}
                 />
@@ -358,6 +367,25 @@ export function UserForm({
                     />
                   </div>
                 </div>
+
+                <Separator />
+
+                {/* Documents Section */}
+                <CardTitle className="text-lg font-bold">Documents</CardTitle>
+                <Controller
+                  control={control}
+                  name="documents"
+                  render={({ field }) => (
+                    <MultiFileUpload
+                      value={field.value as (File | string)[]}
+                      onChange={field.onChange}
+                      name="documents"
+                      label="Upload Documents"
+                      placeholder="Click or drag files to upload"
+                      maxFiles={10}
+                    />
+                  )}
+                />
 
                 <Separator />
 

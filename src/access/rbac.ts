@@ -28,10 +28,8 @@ export const canReadUsers: Access = ({ req: { user } }) => {
     const userDeptIds = getUserDepartmentIds(user as User)
     if (userDeptIds.length > 0) {
       return {
-        departments: {
-          in: userDeptIds,
-        },
-      }
+        or: [{ departments: { in: userDeptIds } }, { id: { equals: user.id } }],
+      } as any
     }
   }
 
@@ -86,10 +84,8 @@ export const canReadPayroll: Access = ({ req: { user } }) => {
     const userDeptIds = getUserDepartmentIds(user as User)
     if (userDeptIds.length > 0) {
       return {
-        'employee.departments': {
-          in: userDeptIds,
-        },
-      }
+        or: [{ 'employee.departments': { in: userDeptIds } }, { employee: { equals: user.id } }],
+      } as any
     }
   }
 
@@ -154,10 +150,8 @@ export const canReadLeaves: Access = ({ req: { user } }) => {
     const userDeptIds = getUserDepartmentIds(user as User)
     if (userDeptIds.length > 0) {
       return {
-        'user.departments': {
-          in: userDeptIds,
-        },
-      }
+        or: [{ 'user.departments': { in: userDeptIds } }, { user: { equals: user.id } }],
+      } as any
     }
   }
 

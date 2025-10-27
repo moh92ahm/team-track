@@ -27,7 +27,7 @@ export function DataTable<T extends { id: string | number }>({
   actionColumn,
   className = '',
   enablePagination = true,
-  initialPageSize = 10,
+  initialPageSize = 20,
 }: DataTableProps<T>) {
   const [pageIndex, setPageIndex] = React.useState(0)
   const [pageSize, setPageSize] = React.useState(initialPageSize)
@@ -80,26 +80,32 @@ export function DataTable<T extends { id: string | number }>({
 
       {enablePagination && (
         <div className="flex items-center justify-between px-4 py-3 mt-3">
-          <div className="hidden items-center gap-2 lg:flex">
-            <span className="text-sm text-muted-foreground">Rows per page</span>
-            <Select
-              value={`${pageSize}`}
-              onValueChange={(value) => {
-                setPageSize(Number(value))
-                setPageIndex(0)
-              }}
-            >
-              <SelectTrigger className="w-20" size="sm">
-                <SelectValue placeholder={pageSize} />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[10, 20, 30, 40, 50].map((size) => (
-                  <SelectItem key={size} value={`${size}`}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-6">
+            <div className="hidden items-center gap-2 lg:flex">
+              <span className="text-sm text-muted-foreground">Rows per page</span>
+              <Select
+                value={`${pageSize}`}
+                onValueChange={(value) => {
+                  setPageSize(Number(value))
+                  setPageIndex(0)
+                }}
+              >
+                <SelectTrigger className="w-20" size="sm">
+                  <SelectValue placeholder={pageSize} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                  {[10, 20, 30, 40, 50].map((size) => (
+                    <SelectItem key={size} value={`${size}`}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Showing {Math.min(end, data.length)} of {data.length} item
+              {data.length !== 1 ? 's' : ''}
+            </div>
           </div>
           <div className="flex w-full items-center gap-4 lg:w-fit">
             <div className="flex w-fit items-center justify-center text-sm font-medium">

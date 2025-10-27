@@ -22,9 +22,6 @@ export const Departments: CollectionConfig = {
       type: 'text',
       required: true,
       unique: true,
-      admin: {
-        description: 'E.g., Sales, Field, English, Turkish, HR, Marketing',
-      },
     },
     {
       name: 'category',
@@ -62,12 +59,12 @@ export const Departments: CollectionConfig = {
       options: [
         { label: 'English', value: 'en' },
         { label: 'Turkish', value: 'tr' },
-        { label: 'Arabic', value: 'ar' },
+        { label: 'Polish', value: 'pl' },
         { label: 'Russian', value: 'ru' },
         { label: 'French', value: 'fr' },
         { label: 'German', value: 'de' },
-        { label: 'Spanish', value: 'es' },
-        { label: 'Persian (Farsi)', value: 'fa' },
+        { label: 'Romanian', value: 'ro' },
+        { label: 'Ukrainian', value: 'uk' },
       ],
       admin: {
         description: 'The language code (only for language departments)',

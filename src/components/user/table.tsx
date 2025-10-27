@@ -48,12 +48,28 @@ export function UserTable({ data }: UserTableProps) {
       header: 'Full Name',
     },
     {
-      key: 'department' as keyof User,
-      header: 'Department',
-      render: (dept: unknown) =>
-        typeof dept === 'object' && dept && 'name' in dept
-          ? (dept as { name: string }).name
-          : (dept as string) || '-',
+      key: 'departments' as keyof User,
+      header: 'Departments',
+      render: (departments: unknown) => {
+        if (!departments || !Array.isArray(departments) || departments.length === 0) {
+          return <span className="text-muted-foreground">-</span>
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {departments.map((dept, index) => {
+              const deptName =
+                typeof dept === 'object' && dept && 'name' in dept
+                  ? (dept as { name: string }).name
+                  : String(dept)
+              return (
+                <Badge key={index} variant="outline">
+                  {deptName}
+                </Badge>
+              )
+            })}
+          </div>
+        )
+      },
     },
     {
       key: 'role' as keyof User,

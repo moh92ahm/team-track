@@ -20,12 +20,9 @@ Your medical agency now uses a **flexible multi-dimensional department system** 
 2. **Language Departments** - What language they work in
    - English
    - Turkish
-   - Arabic
    - Russian
    - French
    - German
-   - Spanish
-   - Persian (Farsi)
 
 ## 👥 User Department Assignment Examples
 

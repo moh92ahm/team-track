@@ -86,11 +86,11 @@ export function PayrollSettingsList({ data }: PayrollSettingsListProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-semibold">Payroll Settings</h1>
+          <h1 className="text-xl font-semibold">Settings</h1>
           <p className="text-sm text-muted-foreground">Manage employee payroll configurations</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/payroll-settings/new">
+          <Link href="/payroll/settings/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               New Payroll Setting

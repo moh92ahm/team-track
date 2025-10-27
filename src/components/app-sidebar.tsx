@@ -53,64 +53,17 @@ const data = {
       icon: IconCreditCard,
       items: [
         {
-          title: 'Payroll Records',
+          title: 'Records',
           url: '/payroll',
         },
         {
-          title: 'Payroll Settings',
+          title: 'Settings',
           url: '/payroll/settings',
         },
       ],
     },
   ],
-  // navClouds: [
-  //   {
-  //     title: "Capture",
-  //     icon: IconCamera,
-  //     isActive: true,
-  //     url: "#",
-  //     items: [
-  //       {
-  //         title: "Active Proposals",
-  //         url: "#",
-  //       },
-  //       {
-  //         title: "Archived",
-  //         url: "#",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     title: "Proposal",
-  //     icon: IconFileDescription,
-  //     url: "#",
-  //     items: [
-  //       {
-  //         title: "Active Proposals",
-  //         url: "#",
-  //       },
-  //       {
-  //         title: "Archived",
-  //         url: "#",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     title: "Prompts",
-  //     icon: IconFileAi,
-  //     url: "#",
-  //     items: [
-  //       {
-  //         title: "Active Proposals",
-  //         url: "#",
-  //       },
-  //       {
-  //         title: "Archived",
-  //         url: "#",
-  //       },
-  //     ],
-  //   },
-  // ],
+
   navSecondary: [
     {
       title: 'Settings',

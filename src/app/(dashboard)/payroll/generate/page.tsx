@@ -38,63 +38,96 @@ export default async function GeneratePayrollPage() {
 
       for (const employee of employees.docs) {
         try {
-          // Check if payroll already exists
-          const existing = await payload.find({
-            collection: 'payroll',
+          // Get all active payroll settings for this employee
+          const payrollSettings = await payload.find({
+            collection: 'payroll-settings',
             where: {
               and: [
                 { employee: { equals: employee.id } },
-                { 'period.month': { equals: month } },
-                { 'period.year': { equals: year } },
+                { isActive: { equals: true } },
+                {
+                  or: [
+                    { 'effectiveDate.endDate': { exists: false } },
+                    { 'effectiveDate.endDate': { greater_than: new Date() } },
+                  ],
+                },
               ],
             },
             user,
           })
 
-          if (existing.docs.length > 0) {
-            skipped++
-            continue
+          // Create one payroll record per setting
+          for (const setting of payrollSettings.docs) {
+            try {
+              // Check if payroll already exists for this specific setting
+              const existing = await payload.find({
+                collection: 'payroll',
+                where: {
+                  and: [
+                    { employee: { equals: employee.id } },
+                    { 'period.month': { equals: month } },
+                    { 'period.year': { equals: year } },
+                    { 'payrollItems.payrollSetting': { equals: setting.id } },
+                  ],
+                },
+                user,
+              })
+
+              if (existing.docs.length > 0) {
+                skipped++
+                continue
+              }
+
+              // Create separate payroll record for each setting
+              await payload.create({
+                collection: 'payroll',
+                data: {
+                  employee: employee.id,
+                  period: {
+                    month: month as
+                      | '01'
+                      | '02'
+                      | '03'
+                      | '04'
+                      | '05'
+                      | '06'
+                      | '07'
+                      | '08'
+                      | '09'
+                      | '10'
+                      | '11'
+                      | '12',
+                    year,
+                  },
+                  payrollItems: [
+                    {
+                      payrollSetting: setting.id,
+                      description: setting.description || `${setting.payrollType} payment`,
+                      payrollType: setting.payrollType,
+                      amount: setting.paymentDetails?.amount || 0,
+                      paymentType: setting.paymentDetails?.paymentType || 'bankTransfer',
+                    },
+                  ],
+                  adjustments: {
+                    bonusAmount: 0,
+                    deductionAmount: 0,
+                    adjustmentNote: '',
+                  },
+                  status: 'generated',
+                },
+                user,
+              })
+
+              created++
+            } catch (error) {
+              console.error(
+                `Error creating payroll for employee ${employee.id}, setting ${setting.id}:`,
+                error,
+              )
+            }
           }
-
-          // Create payroll record
-          await payload.create({
-            collection: 'payroll',
-            data: {
-              employee: employee.id,
-              period: {
-                month: month as
-                  | '01'
-                  | '02'
-                  | '03'
-                  | '04'
-                  | '05'
-                  | '06'
-                  | '07'
-                  | '08'
-                  | '09'
-                  | '10'
-                  | '11'
-                  | '12',
-                year,
-              },
-              workDays: {
-                totalWorkingDays: 22,
-                daysWorked: 22,
-                leaveDays: 0,
-              },
-              adjustments: {
-                bonusAmount: 0,
-                deductionAmount: 0,
-                overtimePay: 0,
-              },
-              status: 'generated',
-            },
-            user,
-          })
-
-          created++
         } catch (error) {
-          console.error(`Error creating payroll for employee ${employee.id}:`, error)
+          console.error(`Error processing employee ${employee.id}:`, error)
         }
       }
 

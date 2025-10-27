@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
+import { Search } from 'lucide-react'
 import type { Inventory, User } from '@/payload-types'
 import Link from 'next/link'
 import { updateInventoryInline } from '@/lib/actions/inventory'
@@ -75,6 +76,16 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
     }
   }, [status])
 
+  // Filter holders based on search query
+  const filteredHolders = React.useMemo(() => {
+    if (!holderQuery) return holders
+
+    const query = holderQuery.toLowerCase()
+    return holders.filter(
+      (h) => h.label.toLowerCase().includes(query) || h.value.toLowerCase().includes(query),
+    )
+  }, [holders, holderQuery])
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -117,26 +128,35 @@ export function InventoryDrawer({ item }: InventoryDrawerProps) {
               <SelectValue placeholder={currentHolderName} />
             </SelectTrigger>
             <SelectContent>
-              <div className="p-2">
+              <div className="flex items-center border-b px-3 pb-2">
+                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                 <Input
-                  placeholder="Search users..."
+                  placeholder="Search..."
                   value={holderQuery}
                   onChange={(e) => setHolderQuery(e.target.value)}
+                  className="h-8 w-full border-0 bg-transparent p-0 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0"
+                  onKeyDown={(e) => {
+                    // Prevent select from closing when typing
+                    e.stopPropagation()
+                  }}
                 />
               </div>
-              {status !== 'inUse' && <SelectItem value="__none__">Unassigned</SelectItem>}
-              {holders
-                .filter((h) =>
-                  holderQuery
-                    ? h.label.toLowerCase().includes(holderQuery.toLowerCase()) ||
-                      h.value.toLowerCase().includes(holderQuery.toLowerCase())
-                    : true,
-                )
-                .map((h) => (
-                  <SelectItem key={h.value} value={h.value}>
-                    {h.label}
-                  </SelectItem>
-                ))}
+              <div className="max-h-[200px] overflow-auto">
+                {filteredHolders.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    No results found.
+                  </div>
+                ) : (
+                  <>
+                    {status !== 'inUse' && <SelectItem value="__none__">Unassigned</SelectItem>}
+                    {filteredHolders.map((h) => (
+                      <SelectItem key={h.value} value={h.value}>
+                        {h.label}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+              </div>
             </SelectContent>
           </Select>
         </div>

@@ -239,6 +239,7 @@ export function InventoryForm({
                   placeholder="Select user holder"
                   options={holderOptions}
                   error={errors.holder?.message as string | undefined}
+                  searchable={true}
                 />
 
                 <div>

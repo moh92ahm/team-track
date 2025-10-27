@@ -65,6 +65,60 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       user: currentUser,
     })
 
+    // Fetch additional payments for this user
+    const additionalPaymentsRes = await payload.find({
+      collection: 'additional-payments',
+      depth: 2,
+      limit: 100,
+      where: {
+        employee: {
+          equals: Number(user.id),
+        },
+      },
+      sort: '-createdAt',
+      user: currentUser,
+    })
+
+    // Combine payroll and additional payments
+    const combinedPayrollHistory = [
+      ...payrollRes.docs.map((doc) => ({ ...doc, isAdditionalPayment: false })),
+      ...additionalPaymentsRes.docs.map((doc: any) => ({
+        id: `additional-${doc.id}`,
+        employee: doc.employee,
+        period: doc.period,
+        // Transform additional payment into payrollItems structure
+        payrollItems: [
+          {
+            payrollSetting: null,
+            description: doc.description || '',
+            payrollType: doc.category, // bonus, deduction, etc.
+            amount: doc.amount,
+            paymentType: doc.paymentType,
+          },
+        ],
+        adjustments: {
+          bonusAmount: 0,
+          deductionAmount: 0,
+          adjustmentNote: doc.notes || null,
+        },
+        totalAmount: doc.amount, // Use the amount as totalAmount
+        paymentDetails: {
+          paymentDate: doc.paymentDate,
+          paymentReference: null,
+          paymentNotes: doc.notes,
+        },
+        status: doc.status,
+        processedBy: doc.processedBy,
+        processedAt: doc.processedAt,
+        updatedAt: doc.updatedAt,
+        createdAt: doc.createdAt,
+        isAdditionalPayment: true,
+      })),
+    ].sort((a, b) => {
+      // Sort by createdAt descending
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+
     // Fetch payroll settings for this user
     const payrollSettingsRes = await payload.find({
       collection: 'payroll-settings',
@@ -84,7 +138,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         user={user}
         inventory={invRes.docs as Inventory[]}
         leaves={leavesRes.docs as LeaveDay[]}
-        payrollHistory={payrollRes.docs as Payroll[]}
+        payrollHistory={combinedPayrollHistory as Payroll[]}
         payrollSettings={payrollSettingsRes.docs as PayrollSetting[]}
       />
     )

@@ -34,12 +34,32 @@ export async function generateMonthlyPayrolls(month: string, year: number) {
         return null // Skip if already exists
       }
 
+      // Get payroll settings for this employee
+      const payrollSettings = await payload.find({
+        collection: 'payroll-settings',
+        where: {
+          employee: { equals: user.id },
+        },
+        limit: 1,
+      })
+
+      // Skip if no payroll settings found
+      if (!payrollSettings.docs.length) {
+        return null
+      }
+
+      const settings = payrollSettings.docs[0]
+
       // Calculate leave days for the period
       const leaveDays = await calculateLeaveDays(String(user.id), month, year)
 
       // Calculate working days
       const totalWorkingDays = getWorkingDaysInMonth(month, year)
       const daysWorked = totalWorkingDays - leaveDays.unpaidDays
+
+      // Calculate prorated amount if employee didn't work full month
+      const prorationFactor = daysWorked / totalWorkingDays
+      const proratedAmount = settings.paymentDetails.amount * prorationFactor
 
       // Create payroll record
       return payload.create({
@@ -62,16 +82,24 @@ export async function generateMonthlyPayrolls(month: string, year: number) {
               | '12',
             year,
           },
-          workDays: {
-            totalWorkingDays,
-            daysWorked,
-            leaveDays: leaveDays.total,
-          },
+          payrollItems: [
+            {
+              payrollSetting: settings.id,
+              description: settings.description || 'Monthly Salary',
+              payrollType: settings.payrollType,
+              amount: proratedAmount,
+              paymentType: settings.paymentDetails.paymentType,
+            },
+          ],
           adjustments: {
             bonusAmount: 0,
             deductionAmount: 0,
-            overtimePay: 0,
+            adjustmentNote:
+              leaveDays.unpaidDays > 0
+                ? `Prorated for ${daysWorked}/${totalWorkingDays} working days (${leaveDays.unpaidDays} unpaid leave days)`
+                : '',
           },
+          totalAmount: proratedAmount,
           status: 'generated',
         },
       })

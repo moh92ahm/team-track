@@ -192,7 +192,6 @@ export const Payroll: CollectionConfig = {
       defaultValue: 'generated',
       options: [
         { label: 'Generated', value: 'generated' },
-        { label: 'Reviewed', value: 'reviewed' },
         { label: 'Approved', value: 'approved' },
         { label: 'Paid', value: 'paid' },
         { label: 'Cancelled', value: 'cancelled' },
@@ -244,69 +243,13 @@ export const Payroll: CollectionConfig = {
           // Update the total amount field
           data.totalAmount = Math.round(totalAmount * 100) / 100
 
-          // Auto-set processedAt and processedBy when status changes to paid/cancelled
+          // Auto-set processedAt when status changes to paid/cancelled
           if (['paid', 'cancelled'].includes(data.status) && !data.processedAt) {
             data.processedAt = new Date()
-            // Note: processedBy would typically be set from the authenticated user context
-            // data.processedBy = req.user?.id
           }
         }
 
         return data
-      },
-    ],
-
-    // Hook to auto-generate payroll items from PayrollSettings
-    afterChange: [
-      async ({ doc, operation, req }) => {
-        // Auto-populate payroll items when creating a new payroll record
-        if (
-          operation === 'create' &&
-          doc.employee &&
-          (!doc.payrollItems || doc.payrollItems.length === 0)
-        ) {
-          try {
-            // Find active payroll settings for this employee
-            const payrollSettings = await req.payload.find({
-              collection: 'payroll-settings',
-              where: {
-                and: [
-                  { employee: { equals: doc.employee } },
-                  { isActive: { equals: true } },
-                  {
-                    or: [
-                      { 'effectiveDate.endDate': { exists: false } },
-                      { 'effectiveDate.endDate': { greater_than: new Date() } },
-                    ],
-                  },
-                ],
-              },
-              depth: 1,
-            })
-
-            if (payrollSettings.docs.length > 0) {
-              const payrollItems = payrollSettings.docs.map((setting) => ({
-                payrollSetting: setting.id,
-                description: setting.description || `${setting.payrollType} payment`,
-                payrollType: setting.payrollType,
-                amount: setting.paymentDetails?.amount || 0,
-                paymentType: setting.paymentDetails?.paymentType || 'bankTransfer',
-              }))
-
-              // Update the payroll record with generated items
-              await req.payload.update({
-                collection: 'payroll',
-                id: doc.id,
-                data: {
-                  payrollItems,
-                },
-                user: req.user,
-              })
-            }
-          } catch (error) {
-            console.error('Error auto-generating payroll items:', error)
-          }
-        }
       },
     ],
   },

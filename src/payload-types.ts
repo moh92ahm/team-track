@@ -72,6 +72,7 @@ export interface Config {
     'leave-days': LeaveDay;
     payroll: Payroll;
     'payroll-settings': PayrollSetting;
+    'additional-payments': AdditionalPayment;
     roles: Role;
     departments: Department;
     media: Media;
@@ -86,6 +87,7 @@ export interface Config {
     'leave-days': LeaveDaysSelect<false> | LeaveDaysSelect<true>;
     payroll: PayrollSelect<false> | PayrollSelect<true>;
     'payroll-settings': PayrollSettingsSelect<false> | PayrollSettingsSelect<true>;
+    'additional-payments': AdditionalPaymentsSelect<false> | AdditionalPaymentsSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -207,9 +209,6 @@ export interface Media {
  */
 export interface Department {
   id: number;
-  /**
-   * E.g., Sales, Field, English, Turkish, HR, Marketing
-   */
   name: string;
   /**
    * Is this a functional department (Sales, Field, HR) or a language department (English, Turkish)?
@@ -222,7 +221,7 @@ export interface Department {
   /**
    * The language code (only for language departments)
    */
-  languageCode?: ('en' | 'tr' | 'ar' | 'ru' | 'fr' | 'de' | 'es' | 'fa') | null;
+  languageCode?: ('en' | 'tr' | 'pl' | 'ru' | 'fr' | 'de' | 'ro' | 'uk') | null;
   /**
    * Brief description of this department
    */
@@ -386,7 +385,7 @@ export interface Payroll {
     paymentReference?: string | null;
     paymentNotes?: string | null;
   };
-  status?: ('generated' | 'reviewed' | 'approved' | 'paid' | 'cancelled') | null;
+  status?: ('generated' | 'approved' | 'paid' | 'cancelled') | null;
   processedBy?: (number | null) | User;
   processedAt?: string | null;
   updatedAt: string;
@@ -426,6 +425,50 @@ export interface PayrollSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "additional-payments".
+ */
+export interface AdditionalPayment {
+  id: number;
+  employee: number | User;
+  /**
+   * Type of additional payment
+   */
+  category: 'bonus' | 'deduction' | 'advance' | 'commission' | 'allowance' | 'other';
+  /**
+   * Brief description (e.g., "Performance bonus Q4", "Salary advance")
+   */
+  description: string;
+  /**
+   * Amount (positive for payments, can be positive for deductions too)
+   */
+  amount: number;
+  paymentType: 'bankTransfer' | 'cash' | 'cheque';
+  period: {
+    /**
+     * Period this payment relates to (for reporting)
+     */
+    month: '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12';
+    year: number;
+  };
+  /**
+   * Date when the payment was made
+   */
+  paymentDate?: string | null;
+  status: 'generated' | 'approved' | 'paid' | 'cancelled';
+  /**
+   * Additional notes or comments
+   */
+  notes?: string | null;
+  /**
+   * User who processed this payment
+   */
+  processedBy?: (number | null) | User;
+  processedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -450,6 +493,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payroll-settings';
         value: number | PayrollSetting;
+      } | null)
+    | ({
+        relationTo: 'additional-payments';
+        value: number | AdditionalPayment;
       } | null)
     | ({
         relationTo: 'roles';
@@ -652,6 +699,30 @@ export interface PayrollSettingsSelect<T extends boolean = true> {
         endDate?: T;
       };
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "additional-payments_select".
+ */
+export interface AdditionalPaymentsSelect<T extends boolean = true> {
+  employee?: T;
+  category?: T;
+  description?: T;
+  amount?: T;
+  paymentType?: T;
+  period?:
+    | T
+    | {
+        month?: T;
+        year?: T;
+      };
+  paymentDate?: T;
+  status?: T;
+  notes?: T;
+  processedBy?: T;
+  processedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

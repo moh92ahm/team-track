@@ -18,8 +18,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const body = await request.json()
     const { status } = body
 
+    // Check current payroll status
+    const currentPayroll = await payload.findByID({
+      collection: 'payroll',
+      id,
+      user,
+    })
+
+    // Prevent changing status if already paid or cancelled
+    if (currentPayroll.status === 'paid' || currentPayroll.status === 'cancelled') {
+      return NextResponse.json(
+        { error: `Cannot change status of ${currentPayroll.status} payroll` },
+        { status: 403 },
+      )
+    }
+
     // Validate status
-    const validStatuses = ['generated', 'reviewed', 'approved', 'paid', 'cancelled']
+    const validStatuses = ['generated', 'approved', 'paid', 'cancelled']
     if (!status || !validStatuses.includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status. Must be one of: ' + validStatuses.join(', ') },

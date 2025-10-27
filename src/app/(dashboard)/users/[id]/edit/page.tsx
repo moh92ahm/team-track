@@ -112,11 +112,61 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
       userData.secondaryPhone = secondaryPhone || null
       userData.secondaryEmail = secondaryEmail || null
 
-      // Convert string IDs to numbers if they have values
-      const department = String(formData.get('department') || '')
-      if (department) userData.department = parseInt(department)
+      // Handle departments array (multi-select)
+      const departmentIds: number[] = []
+      let index = 0
+      while (formData.has(`departments[${index}]`)) {
+        const deptId = String(formData.get(`departments[${index}]`))
+        if (deptId) departmentIds.push(parseInt(deptId))
+        index++
+      }
+      if (departmentIds.length > 0) userData.departments = departmentIds
+
+      // Convert role string ID to number if value provided
       const role = String(formData.get('role') || '')
       if (role) userData.role = parseInt(role)
+
+      // Handle documents upload (multi-file)
+      // Get existing document IDs from the current user
+      const existingDocIds = Array.isArray(userToEdit.documents)
+        ? userToEdit.documents.map((doc) =>
+            typeof doc === 'object' && doc && 'id' in doc ? Number(doc.id) : Number(doc),
+          )
+        : []
+
+      const documentIds: number[] = [...existingDocIds]
+      let docIndex = 0
+      while (formData.has(`documents[${docIndex}]`)) {
+        const doc = formData.get(`documents[${docIndex}]`) as File | string
+        if (doc && typeof doc === 'object' && 'arrayBuffer' in doc && doc.size > 0) {
+          // New file upload
+          const arrayBuffer = await doc.arrayBuffer()
+          const buffer = Buffer.from(arrayBuffer)
+
+          const uploadResult = await payload.create({
+            collection: 'media',
+            data: {
+              alt: `${fullName} - ${doc.name}`,
+            },
+            file: {
+              data: buffer,
+              mimetype: doc.type,
+              name: doc.name,
+              size: doc.size,
+            },
+            user,
+          })
+          documentIds.push(uploadResult.id as number)
+        } else if (typeof doc === 'string' && doc) {
+          // Existing document ID - keep it if not already in array
+          const docId = parseInt(doc)
+          if (!documentIds.includes(docId)) {
+            documentIds.push(docId)
+          }
+        }
+        docIndex++
+      }
+      userData.documents = documentIds
 
       // Employment fields
       const baseSalary = formData.get('baseSalary')

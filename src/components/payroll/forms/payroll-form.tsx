@@ -17,10 +17,13 @@ const PayrollSchema = z.object({
     error: 'Month is required',
   }),
   year: z.coerce.number().min(2020).max(2030, 'Year must be between 2020 and 2030'),
+  paymentType: z.enum(['bankTransfer', 'cash'] as const, {
+    error: 'Payment type is required',
+  }),
   bonusAmount: z.coerce.number().min(0, 'Bonus amount cannot be negative').optional(),
   deductionAmount: z.coerce.number().min(0, 'Deduction amount cannot be negative').optional(),
   adjustmentNote: z.string().optional(),
-  status: z.enum(['generated', 'reviewed', 'approved', 'paid', 'cancelled'] as const),
+  status: z.enum(['generated', 'approved', 'paid', 'cancelled'] as const),
   paymentDate: z.string().optional(),
   paymentReference: z.string().optional(),
   paymentNotes: z.string().optional(),
@@ -67,6 +70,7 @@ export function PayrollForm({
         : '',
       month: (initialData?.period?.month as any) || '01',
       year: initialData?.period?.year || new Date().getFullYear(),
+      paymentType: (initialData?.payrollItems?.[0] as any)?.paymentType || 'bankTransfer',
       bonusAmount: initialData?.adjustments?.bonusAmount || 0,
       deductionAmount: initialData?.adjustments?.deductionAmount || 0,
       adjustmentNote: initialData?.adjustments?.adjustmentNote || '',
@@ -87,10 +91,14 @@ export function PayrollForm({
 
   const statusOptions: Option[] = [
     { label: 'Generated', value: 'generated' },
-    { label: 'Reviewed', value: 'reviewed' },
     { label: 'Approved', value: 'approved' },
     { label: 'Paid', value: 'paid' },
     { label: 'Cancelled', value: 'cancelled' },
+  ]
+
+  const paymentTypeOptions: Option[] = [
+    { label: 'Bank Transfer', value: 'bankTransfer' },
+    { label: 'Cash', value: 'cash' },
   ]
 
   const monthOptions: Option[] = [
@@ -145,6 +153,7 @@ export function PayrollForm({
                   placeholder="Select employee"
                   options={employees}
                   error={errors.employee?.message as string | undefined}
+                  searchable={true}
                 />
 
                 <div className="grid grid-cols-2 gap-4">
@@ -184,34 +193,23 @@ export function PayrollForm({
               </CardContent>
             </Card>
 
-            {/* Work Days */}
+            {/* Payment Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Payroll Items</CardTitle>
+                <CardTitle>Payment Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <SelectField
+                  control={control}
+                  name={'paymentType'}
+                  label="Payment Type *"
+                  placeholder="Select payment type"
+                  options={paymentTypeOptions}
+                  error={errors.paymentType?.message as string | undefined}
+                />
                 <p className="text-sm text-muted-foreground">
-                  Payroll items are automatically generated from active PayrollSettings when you
-                  create a new payroll record. You can make manual adjustments below.
+                  Select how the payroll will be paid to the employee.
                 </p>
-                {mode === 'edit' && initialData?.payrollItems && (
-                  <div className="border rounded-md p-4 space-y-2">
-                    <h4 className="font-medium text-sm">Generated Items:</h4>
-                    <ul className="space-y-1 text-sm">
-                      {(initialData.payrollItems as any[]).map((item, idx) => (
-                        <li key={idx} className="flex justify-between">
-                          <span>{item.description || item.payrollType}</span>
-                          <span className="font-medium">
-                            {new Intl.NumberFormat('tr-TR', {
-                              style: 'currency',
-                              currency: 'TRY',
-                            }).format(item.amount || 0)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

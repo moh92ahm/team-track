@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, FileSpreadsheet } from 'lucide-react'
+import { Plus, FileSpreadsheet, Search } from 'lucide-react'
 import type { Payroll, User } from '@/payload-types'
 import { PayrollTable } from '@/components/payroll/table'
 
@@ -25,7 +25,7 @@ export function PayrollList({ data }: PayrollListProps) {
 
   // Single-select filter: 'all' or one specific status
   const [statusFilter, setStatusFilter] = React.useState<
-    'all' | 'generated' | 'reviewed' | 'approved' | 'paid' | 'cancelled'
+    'all' | 'generated' | 'approved' | 'paid' | 'cancelled'
   >('all')
 
   // Dynamic period filter with separate month and year
@@ -35,7 +35,6 @@ export function PayrollList({ data }: PayrollListProps) {
 
   const [selectedMonth, setSelectedMonth] = React.useState<string>(currentMonth)
   const [selectedYear, setSelectedYear] = React.useState<number>(currentYear)
-  const [showAllPeriods, setShowAllPeriods] = React.useState<boolean>(false)
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -47,21 +46,46 @@ export function PayrollList({ data }: PayrollListProps) {
 
       const itemStatus = String((item as unknown as { status?: string }).status || '').toLowerCase()
 
+      // Get payment type from first payroll item
+      const items = item.payrollItems
+      const paymentType =
+        items && Array.isArray(items) && items.length > 0
+          ? String((items[0] as any)?.paymentType || '').toLowerCase()
+          : ''
+
+      // Convert payment type to readable format for search
+      const paymentTypeLabel =
+        paymentType === 'banktransfer'
+          ? 'bank transfer'
+          : paymentType === 'cash'
+            ? 'cash'
+            : paymentType === 'cheque'
+              ? 'cheque'
+              : ''
+
+      // Check if it's an additional payment
+      const isAdditional = (item as any).isAdditionalPayment
+      const additionalText = isAdditional ? 'additional' : ''
+
+      // Apply period filter (month and year)
+      if (item.period?.month !== selectedMonth || item.period?.year !== selectedYear) {
+        return false
+      }
+
       // Apply single-select status filter
       if (statusFilter !== 'all' && itemStatus !== statusFilter) return false
 
-      // Apply dynamic period filter (unless showing all periods)
-      if (!showAllPeriods) {
-        const itemMonth = item.period?.month
-        const itemYear = item.period?.year
-        if (itemMonth !== selectedMonth || itemYear !== selectedYear) return false
-      }
-
       if (!q) return true
 
-      return itemStatus.includes(q) || employee.includes(q)
+      return (
+        itemStatus.includes(q) ||
+        employee.includes(q) ||
+        paymentType.includes(q) ||
+        paymentTypeLabel.includes(q) ||
+        additionalText.includes(q)
+      )
     })
-  }, [data, query, statusFilter, showAllPeriods, selectedMonth, selectedYear])
+  }, [data, query, statusFilter, selectedMonth, selectedYear])
 
   // Get unique months and years from data
   const { availableMonths, availableYears } = React.useMemo(() => {
@@ -103,7 +127,8 @@ export function PayrollList({ data }: PayrollListProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-semibold">Payroll</h1>
+          <h1 className="text-xl font-semibold">Records</h1>
+          <div className="text-sm text-muted-foreground">{filtered.length} Items</div>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/payroll/generate">
@@ -112,10 +137,10 @@ export function PayrollList({ data }: PayrollListProps) {
               Generate Payrolls
             </Button>
           </Link>
-          <Link href="/payroll/new">
+          <Link href="/payroll/additional/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Payroll
+              New Payment
             </Button>
           </Link>
         </div>
@@ -125,47 +150,34 @@ export function PayrollList({ data }: PayrollListProps) {
         {/* Period Filter */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={showAllPeriods ? 'default' : 'outline'}
-              onClick={() => setShowAllPeriods(!showAllPeriods)}
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month} value={month}>
+                    {monthNames[month as keyof typeof monthNames]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={String(selectedYear)}
+              onValueChange={(value) => setSelectedYear(Number(value))}
             >
-              {showAllPeriods ? 'All Periods' : 'Current Period'}
-            </Button>
-
-            {!showAllPeriods && (
-              <>
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableMonths.map((month) => (
-                      <SelectItem key={month} value={month}>
-                        {monthNames[month as keyof typeof monthNames]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={String(selectedYear)}
-                  onValueChange={(value) => setSelectedYear(Number(value))}
-                >
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableYears.map((year) => (
-                      <SelectItem key={year} value={String(year)}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -183,7 +195,6 @@ export function PayrollList({ data }: PayrollListProps) {
             {(
               [
                 { label: 'Generated', value: 'generated' },
-                { label: 'Reviewed', value: 'reviewed' },
                 { label: 'Approved', value: 'approved' },
                 { label: 'Paid', value: 'paid' },
                 { label: 'Cancelled', value: 'cancelled' },
@@ -204,12 +215,15 @@ export function PayrollList({ data }: PayrollListProps) {
         </div>
 
         <div className="flex items-center gap-2 md:ml-auto">
-          <Input
-            placeholder="Search employee or status..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-64"
-          />
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search employee, status, or type..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
       </div>
 

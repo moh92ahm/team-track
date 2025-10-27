@@ -10,7 +10,7 @@ export const UserFormSchema = z
     photo: z
       .custom<File | string | null>((v) => v === null || v instanceof File || typeof v === 'string')
       .optional(),
-    departments: z.array(z.string()).optional(),
+    departments: z.array(z.string()).min(1, 'At least one department is required').default([]),
     role: z.string().optional(),
     jobTitle: z.string().optional().default(''),
     birthDate: z
@@ -26,7 +26,7 @@ export const UserFormSchema = z
       .or(z.literal(''))
       .optional(),
     documents: z
-      .array(z.union([z.string(), z.custom<File>(() => true)]))
+      .array(z.union([z.string(), z.custom<File>(() => true), z.any()]))
       .optional()
       .default([]),
     isActive: z.boolean().default(true),

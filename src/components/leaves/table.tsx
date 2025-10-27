@@ -85,7 +85,7 @@ export function LeaveDayTable({ data, enablePagination = true }: LeaveDayTablePr
       key: 'type' as keyof LeaveDay,
       header: 'Type',
       render: (value: unknown) => (
-        <Badge variant="default" className="capitalize">
+        <Badge variant="outline" className="capitalize">
           {String(value)}
         </Badge>
       ),

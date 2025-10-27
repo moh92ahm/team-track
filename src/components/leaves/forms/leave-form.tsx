@@ -149,6 +149,7 @@ export function LeaveDayForm({
                   placeholder="Select user"
                   options={users}
                   error={errors.user?.message as string | undefined}
+                  searchable={true}
                 />
 
                 <SelectField

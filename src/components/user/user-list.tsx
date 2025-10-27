@@ -67,8 +67,8 @@ export function UserList({ data }: UserListProps) {
       // Search filter
       const name = s.fullName?.toLowerCase() || ''
       const dept =
-        (typeof s.department === 'object' && s.department && 'name' in s.department
-          ? (s.department as any).name
+        (typeof s.departments === 'object' && s.departments && 'name' in s.departments
+          ? (s.departments as any).name
           : ''
         )?.toLowerCase() || ''
       const role =

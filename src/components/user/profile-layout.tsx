@@ -15,6 +15,7 @@ import { SetBreadcrumbLabel } from '@/components/set-breadcrumb-label'
 import { InventoryCard } from './inventory-card'
 import { EmploymentStatusCard } from './employment-status'
 import { LeavesCard } from './leaves-card'
+import { DocumentsCard } from './documents-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ProfileLayoutProps {
@@ -69,11 +70,12 @@ export function ProfileLayout({
         <Card>
           <CardContent className="pt-2">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid grid-cols-4">
+              <TabsList className="grid grid-cols-5">
                 <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="payroll">Payroll</TabsTrigger>
                 <TabsTrigger value="leaves">Leaves</TabsTrigger>
                 <TabsTrigger value="inventory">Inventory</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
 
               {/* Profile Tab */}
@@ -96,6 +98,11 @@ export function ProfileLayout({
               {/* Inventory Tab */}
               <TabsContent value="inventory" className="space-y-6 mt-2">
                 <InventoryCard inventory={inventory} />
+              </TabsContent>
+
+              {/* Documents Tab */}
+              <TabsContent value="documents" className="space-y-6 mt-2">
+                <DocumentsCard user={user} />
               </TabsContent>
             </Tabs>
           </CardContent>

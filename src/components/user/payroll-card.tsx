@@ -66,9 +66,92 @@ export function PayrollCard({ payrollHistory = [], payrollSettings = [] }: Payro
       },
     },
     {
+      key: 'payrollItems' as keyof Payroll,
+      header: 'Payment Method',
+      render: (value: unknown, item: Payroll) => {
+        const items = item.payrollItems
+        const isAdditionalPayment = (item as any).isAdditionalPayment
+
+        if (!items || !Array.isArray(items) || items.length === 0) return '-'
+
+        // Get all unique payment types
+        const paymentTypes = items
+          .map((payrollItem) => (payrollItem as any).paymentType)
+          .filter((type, index, self) => type && self.indexOf(type) === index)
+
+        if (paymentTypes.length === 0) return '-'
+
+        const paymentLabels = {
+          bankTransfer: 'Bank Transfer',
+          cash: 'Cash',
+          cheque: 'Cheque',
+        }
+
+        return (
+          <div className="flex flex-wrap gap-1">
+            {paymentTypes.map((type, idx) => {
+              const label = paymentLabels[type as keyof typeof paymentLabels] || type
+              // Show "Additional" badge if it's from additional-payments collection
+              // OR if it's a secondary item in payrollItems array
+              const showAdditional = isAdditionalPayment || (items.length > 1 && idx > 0)
+              return (
+                <div key={idx} className="flex items-center gap-1">
+                  <Badge variant="outline" className="text-xs">
+                    {label}
+                  </Badge>
+                  {showAdditional && (
+                    <Badge variant="secondary" className="text-xs">
+                      Additional
+                    </Badge>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )
+      },
+    },
+    {
       key: 'totalAmount' as keyof Payroll,
-      header: 'Total Amount',
-      render: (value: unknown) => formatCurrency(value as number),
+      header: 'Amount',
+      render: (value: unknown, item: Payroll) => {
+        const items = item.payrollItems
+        if (!items || !Array.isArray(items) || items.length === 0) return formatCurrency(0)
+
+        // Calculate base amount from all payroll items
+        const baseAmount = items.reduce((sum, payrollItem) => {
+          return sum + ((payrollItem as any).amount || 0)
+        }, 0)
+
+        const adjustments = item.adjustments
+        const bonus = adjustments?.bonusAmount || 0
+        const deduction = adjustments?.deductionAmount || 0
+
+        // If no adjustments, just show the amount
+        if (bonus === 0 && deduction === 0) {
+          return formatCurrency(baseAmount)
+        }
+
+        // Show amount with adjustments breakdown
+        const parts = [formatCurrency(baseAmount)]
+        if (bonus > 0) parts.push(`+ ${formatCurrency(bonus)}`)
+        if (deduction > 0) parts.push(`- ${formatCurrency(deduction)}`)
+
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm">{parts.join(' ')}</span>
+          </div>
+        )
+      },
+    },
+    {
+      key: 'adjustments' as keyof Payroll,
+      header: 'Net Total',
+      render: (value: unknown, item: Payroll) => {
+        return (
+          <span className="font-medium">{formatCurrency((item.totalAmount as number) || 0)}</span>
+        )
+      },
     },
     {
       key: 'status' as keyof Payroll,
@@ -108,6 +191,19 @@ export function PayrollCard({ payrollHistory = [], payrollSettings = [] }: Payro
       header: 'Amount',
       render: (value: unknown, item: PayrollSetting) => {
         return formatCurrency((item.paymentDetails as any)?.amount)
+      },
+    },
+    {
+      key: 'paymentType' as keyof PayrollSetting,
+      header: 'Payment Method',
+      render: (value: unknown, item: PayrollSetting) => {
+        const paymentType = (item.paymentDetails as any)?.paymentType
+        const paymentLabels = {
+          bankTransfer: 'Bank Transfer',
+          cash: 'Cash',
+          cheque: 'Cheque',
+        }
+        return paymentLabels[paymentType as keyof typeof paymentLabels] || paymentType || '-'
       },
     },
     {

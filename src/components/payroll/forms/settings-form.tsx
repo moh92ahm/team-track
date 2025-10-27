@@ -197,6 +197,7 @@ export function SettingsForm({
                   label="Employee *"
                   placeholder="Select employee"
                   options={employees}
+                  searchable={true}
                   error={errors.employee?.message as string | undefined}
                 />
 
