@@ -5,7 +5,9 @@ import { Badge } from '../ui/badge'
 import { DataTable } from '../data-table'
 import { InventoryItemCell } from './item-cell'
 import { Button } from '../ui/button'
-import Link from 'next/link'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '../ui/drawer'
+import { InventoryDrawer } from './drawer'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface InventoryTableProps {
   data: Inventory[]
@@ -13,6 +15,16 @@ interface InventoryTableProps {
 }
 
 export function InventoryTable({ data, enablePagination = true }: InventoryTableProps) {
+  const getStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      inUse: 'In Use',
+      inStock: 'In Stock',
+      needsRepair: 'Needs Repair',
+      underRepair: 'Under Repair',
+    }
+    return labels[status] || status
+  }
+
   const columns = [
     {
       key: 'itemType' as keyof Inventory,
@@ -38,7 +50,7 @@ export function InventoryTable({ data, enablePagination = true }: InventoryTable
       header: 'Status',
       render: (value: unknown) => (
         <Badge variant="default" className="capitalize">
-          {String(value)}
+          {getStatusLabel(String(value))}
         </Badge>
       ),
     },
@@ -56,13 +68,29 @@ export function InventoryTable({ data, enablePagination = true }: InventoryTable
     },
   ]
 
-  const actionColumn = (item: Inventory) => (
-    <Link href={`/inventory/${item.id}/edit`} className="flex-1">
-      <Button variant="outline" className="w-full">
-        Edit Item
-      </Button>
-    </Link>
-  )
+  const InventoryActionButton = ({ item }: { item: Inventory }) => {
+    const isMobile = useIsMobile()
+
+    return (
+      <Drawer direction={isMobile ? 'bottom' : 'right'}>
+        <DrawerTrigger asChild>
+          <Button variant="outline" className="w-full">
+            View Details
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className={isMobile ? '' : 'w-[400px] sm:w-[540px]'}>
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl">Item Details</DrawerTitle>
+          </DrawerHeader>
+          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+            <InventoryDrawer item={item} />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  const actionColumn = (item: Inventory) => <InventoryActionButton item={item} />
 
   return (
     <div className="space-y-4">

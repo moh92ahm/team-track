@@ -25,7 +25,7 @@ const AdditionalPaymentSchema = z.object({
     message: 'Month is required',
   }),
   year: z.coerce.number().min(2020).max(2030, 'Year must be between 2020 and 2030'),
-  status: z.enum(['pending', 'approved', 'paid', 'cancelled']),
+  status: z.enum(['generated', 'approved', 'paid', 'cancelled']),
   notes: z.string().optional(),
   paymentDate: z.string().optional(),
 })
@@ -62,7 +62,7 @@ export function AdditionalPaymentForm({
       paymentType: 'bankTransfer',
       month: new Date().toISOString().slice(5, 7) as any,
       year: new Date().getFullYear(),
-      status: 'pending',
+      status: 'generated',
       notes: '',
       paymentDate: '',
     },

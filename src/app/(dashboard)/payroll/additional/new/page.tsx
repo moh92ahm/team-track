@@ -37,7 +37,7 @@ export default async function NewAdditionalPaymentPage() {
     const paymentType = String(formData.get('paymentType') || 'bankTransfer')
     const month = String(formData.get('month') || '')
     const year = Number(formData.get('year') || 0)
-    const status = String(formData.get('status') || 'pending')
+    const status = String(formData.get('status') || 'generated')
     const notes = String(formData.get('notes') || '')
     const paymentDate = String(formData.get('paymentDate') || '')
 
@@ -87,7 +87,7 @@ export default async function NewAdditionalPaymentPage() {
           | '12',
         year,
       },
-      status: status as 'pending' | 'approved' | 'paid' | 'cancelled',
+      status: status as 'generated' | 'approved' | 'paid' | 'cancelled',
       notes: notes || null,
       paymentDate: paymentDate || null,
     }

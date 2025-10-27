@@ -70,11 +70,11 @@ const data = {
       url: '/admin',
       icon: IconSettings,
     },
-    {
-      title: 'Search',
-      url: '/search',
-      icon: IconSearch,
-    },
+    // {
+    //   title: 'Search',
+    // //   url: '/search',
+    // //   icon: IconSearch,
+    // // },
   ],
 }
 

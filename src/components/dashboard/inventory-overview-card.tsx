@@ -1,4 +1,4 @@
-import { Package, Laptop, Smartphone, Headphones, HardDrive } from 'lucide-react'
+import { Package, Laptop, Smartphone, Headphones, HardDrive, CardSim } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
@@ -36,7 +36,7 @@ export function InventoryOverviewCard({ stats }: InventoryOverviewCardProps) {
         {/* Equipment breakdown */}
         <div className="w-full">
           <div className="font-medium mb-2">Equipment Types</div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
             <div className="flex items-center gap-2">
               <Laptop className="h-4 w-4 text-blue-600" />
               <span className="font-medium">{stats.byType.laptops}</span>
@@ -46,6 +46,11 @@ export function InventoryOverviewCard({ stats }: InventoryOverviewCardProps) {
               <Smartphone className="h-4 w-4 text-green-600" />
               <span className="font-medium">{stats.byType.phones}</span>
               <span className="text-muted-foreground text-xs">Phones</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CardSim className="h-4 w-4 text-green-600" />
+              <span className="font-medium">{stats.byType.simCards}</span>
+              <span className="text-muted-foreground text-xs">SIM Cards</span>
             </div>
             <div className="flex items-center gap-2">
               <Headphones className="h-4 w-4 text-purple-600" />

@@ -16,6 +16,7 @@ export interface InventoryStats {
   byType: {
     laptops: number
     phones: number
+    simCards: number
     accessories: number
     other: number
   }
@@ -74,6 +75,7 @@ export async function getInventoryStats(): Promise<InventoryStats> {
   const byType = {
     laptops: 0,
     phones: 0,
+    simCards: 0,
     accessories: 0,
     other: 0,
   }
@@ -94,6 +96,9 @@ export async function getInventoryStats(): Promise<InventoryStats> {
         break
       case 'phone':
         byType.phones++
+        break
+      case 'simCard':
+        byType.simCards++
         break
       case 'accessory':
         byType.accessories++

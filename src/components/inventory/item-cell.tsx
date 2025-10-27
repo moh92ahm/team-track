@@ -16,6 +16,17 @@ interface InventoryItemCellProps {
   item: Inventory
 }
 
+const getItemTypeLabel = (itemType: string): string => {
+  const labels: Record<string, string> = {
+    laptop: 'Laptop',
+    phone: 'Phone',
+    accessory: 'Accessory',
+    simCard: 'Sim Card',
+    other: 'Other',
+  }
+  return labels[itemType] || itemType
+}
+
 export function InventoryItemCell({ item }: InventoryItemCellProps) {
   const isMobile = useIsMobile()
 
@@ -23,7 +34,7 @@ export function InventoryItemCell({ item }: InventoryItemCellProps) {
     <Drawer direction={isMobile ? 'bottom' : 'right'}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.itemType}
+          {getItemTypeLabel(item.itemType)}
         </Button>
       </DrawerTrigger>
       <DrawerContent className={isMobile ? '' : 'w-[400px] sm:w-[540px]'}>
