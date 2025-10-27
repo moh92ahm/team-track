@@ -53,7 +53,7 @@ Each user has:
 **Examples:**
 
 - Sales Rep: `departments: [Sales, Turkish]`
-- Multi-lingual Agent: `departments: [Field, English, Arabic, Russian]`
+- Multi-lingual Agent: `departments: [Field, English, Russian]`
 - HR Manager: `departments: [Human Resources]`
 
 ### 2. **Your Medical Agency Structure**
@@ -96,9 +96,9 @@ Users can belong to **multiple departments** from both dimensions:
 
 - **Ahmad** (Sales Rep): `Sales` + `Turkish` + `English`
 - **Maria** (Field Agent): `Field` + `English`
-- **Dr. Ali** (Doctor): `Dental Clinic - Doctors` + `Arabic`
+- **Dr. Ali** (Doctor): `Dental Clinic - Doctors`
 - **Sarah** (HR Manager): `Human Resources` (no language needed)
-- **Omar** (Multi-lingual Field Agent): `Field` + `Arabic` + `English` + `Turkish`
+- **Omar** (Multi-lingual Field Agent): `Field` + `English` + `Turkish`
 
 **Benefits:**
 
