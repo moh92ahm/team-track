@@ -1,61 +1,85 @@
-# To use this Dockerfile, you have to set `output: 'standalone'` in your next.config.mjs file.
-# From https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
-
 FROM node:22.17.0-alpine AS base
 
-# Install dependencies only when needed
+# Install dependencies needed for building
+RUN apk add --no-cache libc6-compat python3 make g++ bash curl wget
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable
+
+# Dependencies stage
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile --production=false
 
-# Install dependencies using pnpm
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable pnpm && pnpm i --frozen-lockfile
-
-
-# Rebuild the source code only when needed
+# Build stage - everything happens here in CI/CD
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# This will be handled by CI/CD, not here
+# RUN pnpm exec payload migrate  # Moved to CI/CD
+# RUN pnpm run build             # Moved to CI/CD
 
-RUN corepack enable pnpm && pnpm run build
-
-# Production image, copy all the files and run next
+# Runtime stage - just run the app
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV HOME=/app
+ENV TMPDIR=/tmp
+ENV USER=nextjs
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# Remove this line if you do not have this folder
-COPY --from=builder /app/public ./public
+# Create all necessary directories with proper permissions
+RUN mkdir -p /app/public/media \
+    && mkdir -p /app/.cache \
+    && mkdir -p /app/.next \
+    && mkdir -p /tmp \
+    && chmod 1777 /tmp \
+    && chown -R nextjs:nodejs /app
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Copy production node_modules (install only production dependencies)
+COPY --from=deps /app/node_modules ./node_modules
+RUN pnpm prune --prod
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy the built application from build context (includes .next built by CI)
+COPY --chown=nextjs:nodejs .next ./.next
+COPY --chown=nextjs:nodejs public ./public
+COPY --chown=nextjs:nodejs package.json ./package.json
+COPY --chown=nextjs:nodejs pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --chown=nextjs:nodejs next.config.mjs ./next.config.mjs
+COPY --chown=nextjs:nodejs postcss.config.mjs ./postcss.config.mjs
+COPY --chown=nextjs:nodejs tsconfig.json ./tsconfig.json
+COPY --chown=nextjs:nodejs payload.config.ts ./payload.config.ts
+COPY --chown=nextjs:nodejs payload-types.ts ./payload-types.ts
+COPY --chown=nextjs:nodejs middleware.ts ./middleware.ts
+COPY --chown=nextjs:nodejs components.json ./components.json
+COPY --chown=nextjs:nodejs next-env.d.ts ./next-env.d.ts
+COPY --chown=nextjs:nodejs src ./src
+COPY --chown=nextjs:nodejs scripts ./scripts
 
+# Clean up unnecessary files for production
+RUN rm -rf /app/node_modules/@typescript-eslint \
+    && rm -rf /app/node_modules/eslint* \
+    && rm -rf /app/node_modules/@testing-library \
+    && rm -rf /app/node_modules/playwright* \
+    && rm -rf /app/node_modules/vitest* \
+    && rm -rf /app/node_modules/@vitejs \
+    && rm -rf /app/node_modules/jsdom
+
+# Switch to non-root user
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:3000/ || exit 1
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD ["sh", "-c", "HOSTNAME=0.0.0.0 node server.js"]
+# Simple start - no migrations, no building, just run
+CMD ["pnpm", "start"]

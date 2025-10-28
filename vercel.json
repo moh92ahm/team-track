@@ -1,9 +1,0 @@
-{
-  "buildCommand": "pnpm run build",
-  "installCommand": "pnpm install",
-  "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "PAYLOAD_CONFIG_PATH": "src/payload.config.ts"
-  }
-}

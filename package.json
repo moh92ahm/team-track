@@ -27,7 +27,6 @@
     "@hookform/resolvers": "^5.2.2",
     "@payloadcms/db-postgres": "3.57.0",
     "@payloadcms/next": "3.57.0",
-    "@payloadcms/payload-cloud": "3.57.0",
     "@payloadcms/richtext-lexical": "3.57.0",
     "@payloadcms/ui": "3.57.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",

@@ -23,10 +23,9 @@ After you click the `Deploy` button above, you'll want to have standalone copy o
 ### Development
 
 1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URI` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
-
+2. `cd my-project && cp .env.example .env` to copy the example environment variables. Update `DATABASE_URI` so it points at your local or remote PostgreSQL instance.
 3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+4. Open `http://localhost:3000` to use the app in your browser
 
 That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
 
@@ -62,69 +61,56 @@ See the [Collections](https://payloadcms.com/docs/configuration/collections) doc
 
 Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
+1. Follow [steps 1 and 2 from above](#development); the docker-compose file will automatically use the `.env` file in your project root.
+2. Run `docker compose up db` to start PostgreSQL (the default credentials come from `.env`).
+3. Run `docker compose up app` in a second terminal to start the Next.js/Payload container.
+4. Follow [step 4 from above](#development) to create your first admin user at `/admin`.
 
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
 
 ## 🚀 Production Deployment
 
-### Deploy to Vercel with Supabase
+### Docker + Hetzner Overview
 
-PayloadCMS automatically creates database tables on first run - **no migrations needed!**
+The repository ships with:
 
-#### Quick Deploy (3 Steps)
+- `Dockerfile` optimised for multi-stage builds
+- `docker-compose-dev.yml` and `docker-compose-prod.yml` for dev/prod stacks (app + PostgreSQL + nginx + certbot)
+- `nginx.conf` and `nginx-dev.conf` reverse proxies ready for Let's Encrypt certificates
+- `.github/workflows/CI-CD.yml` GitHub Actions workflow that builds/pushes images to GHCR and deploys over SSH
 
-1. **Setup Supabase**: Create a PostgreSQL database and get connection string
+At a high level the deployment flow is:
 
-2. **Set Environment Variables in Vercel**:
+1. Each push to `dev` or `main` runs CI, builds the Next.js/Payload image, and pushes to GitHub Container Registry.
+2. The workflow SSHes into your Hetzner box, pulls the fresh image, runs Payload migrations, then restarts the app + nginx via Docker Compose.
+3. Certbot + nginx handle TLS termination (you only need to supply the domain certificates path on the server).
 
-   ```bash
-   DATABASE_URI=postgresql://...           # Supabase connection
-   PAYLOAD_SECRET=<base64>                # Generate with ./scripts/generate-secrets.sh
-   NEXT_PUBLIC_SERVER_URL=https://your-app.vercel.app
-   EMAIL_PROVIDER=resend                   # Email provider
-   RESEND_API_KEY=re_xxxxx                # Your email API key
-   ```
+#### Prepare Your Server
 
-3. **Push to Git**:
-   ```bash
-   git push
-   ```
+1. Install Docker and Docker Compose plugin (`sudo apt update && sudo apt install docker-ce docker-compose-plugin`).
+2. Create the deployment directory (for example `/srv/team-track`) and clone this repository there.
+3. Provision directories for certificates and shared media (defaults can be adjusted in `docker-compose-*.yml`).
+4. Populate `.env` with production secrets (`DATABASE_URI`, `PAYLOAD_SECRET`, mail provider settings, etc.).
 
-That's it! ✅ Payload auto-creates database schema  
-✅ Visit `/admin` to create your first user  
-✅ App ready to use!
+#### Configure GitHub Actions
 
-#### Detailed Guide
+Add the following repository secrets:
 
-See **[DEPLOY.md](./DEPLOY.md)** for complete step-by-step instructions.
+- `DEV_ENV` / `PROD_ENV`: Base64-encoded `.env` files for each environment.
+- `DEV_SSH_HOST`, `DEV_SSH_PORT`, `DEV_SSH_USER`, `DEV_PRIVATE_KEY`, `DEV_DEPLOY_PATH` (repeat with `PROD_*`).
+- Optionally override `GITHUB_OWNER`/`IMAGE_TAG` via secrets if your deploy path differs.
 
-#### Environment Variables
+Push to the corresponding branch (`dev` or `main`) to trigger the pipeline.
 
-See [`.env.example`](./.env.example) for all required variables:
+#### Manual Deploy Alternative
 
-- `DATABASE_URI`: Supabase PostgreSQL connection (port 6543, Transaction mode)
-- `PAYLOAD_SECRET`: Base64-encoded secret
-- `NEXT_PUBLIC_SERVER_URL`: Your Vercel app URL
-- Email provider settings (Resend recommended)
+If you prefer manual deploys:
 
-For security, all secrets should be generated using Base64 encoding:
-
-```bash
-./scripts/generate-secrets.sh
-```
-
-## 📚 Documentation
-
-- 🚀 **[Deployment Guide](./DEPLOY.md)** - **Start here!** Simple Vercel deployment
-- 🔐 **[Access Control](./ACCESS_CONTROL.md)** - User roles and permissions explained
-- 👑 **[Super Admin](./SUPER_ADMIN.md)** - Creating system administrators
-- [RBAC Documentation](./RBAC_DOCUMENTATION.md) - Role-based access control details
-- [Seed Data Documentation](./SEED_DATA_DOCUMENTATION.md) - Local development test data
-- [Department Structure](./DEPARTMENT_STRUCTURE.md) - Organization structure
-- [Payroll Components](./PAYROLL_COMPONENTS_UPDATE.md) - Payroll system details
+1. Build the image locally: `docker build -t ghcr.io/<owner>/team-track:manual .`
+2. Push to your registry (or load it on the server).
+3. Upload a `.env` file to the server and run `docker compose -f docker-compose-prod.yml up -d`.
+4. Run migrations: `docker compose -f docker-compose-prod.yml run --rm migrate`.
+5. Restart nginx: `docker compose -f docker-compose-prod.yml restart nginx`.
 
 ## 🛠️ Tech Stack
 
@@ -134,7 +120,7 @@ For security, all secrets should be generated using Base64 encoding:
 - **UI**: Shadcn UI + Tailwind CSS
 - **Forms**: React Hook Form + Zod validation
 - **Authentication**: PayloadCMS built-in auth
-- **Deployment**: Vercel (recommended)
+- **Deployment**: Docker (Hetzner via GHCR + Compose)
 
 ## Questions
 
