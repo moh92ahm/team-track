@@ -49,7 +49,7 @@ COPY --chown=nextjs:nodejs pnpm-lock.yaml ./pnpm-lock.yaml
 
 # Copy production node_modules and prune dev dependencies
 COPY --from=deps /app/node_modules ./node_modules
-RUN pnpm prune --prod
+RUN CI=true pnpm prune --prod
 
 # Copy the built application from build context (includes .next built by CI)
 COPY --chown=nextjs:nodejs .next ./.next
