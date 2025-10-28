@@ -43,6 +43,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
+  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
