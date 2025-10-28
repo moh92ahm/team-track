@@ -13,14 +13,14 @@ export default async function Page() {
   const { user } = await payload.auth({ headers: await headers() })
   if (!user) redirect('/login')
 
-  // Fetch Users (team) docs - Exclude system users
+  // Fetch Users (team) docs - Exclude super admins
   const { docs } = await payload.find({
     collection: 'users',
     depth: 2,
     limit: 50,
     sort: '-joinedAt',
     where: {
-      isSystemUser: {
+      isSuperAdmin: {
         not_equals: true,
       },
     },

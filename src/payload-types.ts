@@ -146,6 +146,10 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   fullName: string;
+  /**
+   * Super admins have full access and are hidden from the dashboard user list
+   */
+  isSuperAdmin?: boolean | null;
   photo?: (number | null) | Media;
   /**
    * Assign multiple departments (e.g., Sales + English, or just HR)
@@ -153,8 +157,14 @@ export interface User {
   departments?: (number | Department)[] | null;
   role?: (number | null) | Role;
   jobTitle?: string | null;
-  birthDate: string;
-  primaryPhone: string;
+  /**
+   * Not required for super admins
+   */
+  birthDate?: string | null;
+  /**
+   * Not required for super admins
+   */
+  primaryPhone?: string | null;
   secondaryPhone?: string | null;
   secondaryEmail?: string | null;
   employmentType: 'citizen' | 'workPermit' | 'residencePermit' | 'other';
@@ -164,10 +174,6 @@ export interface User {
   address?: string | null;
   documents?: (number | Media)[] | null;
   isActive?: boolean | null;
-  /**
-   * System users are hidden from regular user listings
-   */
-  isSystemUser?: boolean | null;
   joinedAt?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -562,6 +568,7 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   fullName?: T;
+  isSuperAdmin?: T;
   photo?: T;
   departments?: T;
   role?: T;
@@ -577,7 +584,6 @@ export interface UsersSelect<T extends boolean = true> {
   address?: T;
   documents?: T;
   isActive?: T;
-  isSystemUser?: T;
   joinedAt?: T;
   updatedAt?: T;
   createdAt?: T;

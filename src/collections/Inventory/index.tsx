@@ -3,13 +3,13 @@ import { authenticated } from '@/access/authenticated'
 
 export const Inventory: CollectionConfig = {
   slug: 'inventory',
-    access: {
+  access: {
     admin: authenticated,
     create: authenticated,
     delete: authenticated,
     read: authenticated,
     update: authenticated,
-    },
+  },
   admin: {
     useAsTitle: 'itemType',
     defaultColumns: ['itemType', 'model', 'holder', 'status'],
@@ -58,6 +58,11 @@ export const Inventory: CollectionConfig = {
       name: 'holder',
       type: 'relationship',
       relationTo: 'users',
+      filterOptions: {
+        isSuperAdmin: {
+          not_equals: true,
+        },
+      },
     },
     {
       name: 'status',
@@ -77,7 +82,7 @@ export const Inventory: CollectionConfig = {
         },
         {
           label: 'Under Repair',
-          value: 'underRepair', 
+          value: 'underRepair',
         },
       ],
       defaultValue: 'inStock',
@@ -95,7 +100,7 @@ export const Inventory: CollectionConfig = {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      hasMany: true,  
+      hasMany: true,
     },
     {
       name: 'notes',
@@ -103,4 +108,3 @@ export const Inventory: CollectionConfig = {
     },
   ],
 }
-    

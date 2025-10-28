@@ -33,6 +33,11 @@ export const LeaveDays: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       required: true,
+      filterOptions: {
+        isSuperAdmin: {
+          not_equals: true,
+        },
+      },
     },
     {
       name: 'type',

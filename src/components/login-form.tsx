@@ -38,7 +38,21 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       })
 
       if (response.ok) {
-        router.push('/') // Redirect to dashboard
+        const data = await response.json()
+
+        // Check if user is a basic employee (no admin/manager permissions)
+        const user = data.user
+
+        // Super admins or users with viewAll permission go to dashboard
+        const isSuperAdmin = user?.isSuperAdmin === true
+        const hasAdminPermissions = user?.role?.permissions?.users?.viewAll === true
+
+        // Redirect based on user role
+        if (isSuperAdmin || hasAdminPermissions) {
+          router.push('/') // Dashboard for Super Admins/HR/Managers
+        } else {
+          router.push('/profile') // Profile for basic employees
+        }
         router.refresh()
       } else {
         const data = await response.json()
@@ -56,13 +70,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       <Card>
         <CardHeader>
           <CardTitle>
-            <div className='flex flex-col gap-2 items-center mb-2'>
+            <div className="flex flex-col gap-2 items-center mb-2">
               <Image src="/brand/Team-Track-Logo.png" alt="Team Track" width={38} height={38} />
               <span className="text-base font-semibold">Team Track</span>
             </div>
           </CardTitle>
           <CardDescription>
-            <h2 className='font-bold text-base'>Login to your account</h2>
+            <h2 className="font-bold text-base">Login to your account</h2>
             <p>Enter your username or email to login to your account</p>
           </CardDescription>
         </CardHeader>

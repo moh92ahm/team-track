@@ -10,13 +10,26 @@ import {
 } from '@/lib/permissions'
 
 /**
+ * Check if user is a super admin
+ */
+const isSuperAdmin = (user: User): boolean => {
+  return (user as any).isSuperAdmin === true
+}
+
+/**
  * Users can read if:
+ * - They are a super admin
  * - They have viewAll permission (HR)
  * - They have viewDepartment permission and the target is in their department
  * - They are viewing their own profile
  */
 export const canReadUsers: Access = ({ req: { user } }) => {
   if (!user) return false
+
+  // Super admins can view all
+  if (isSuperAdmin(user as User)) {
+    return true
+  }
 
   // HR can view all
   if (canViewAll(user as User, 'users')) {
@@ -46,15 +59,33 @@ export const canReadUsers: Access = ({ req: { user } }) => {
  */
 export const canCreateUsers: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return hasPermission(user as User, 'users', 'create')
 }
 
 /**
- * Only users with edit permission can update users
+ * Users can update if:
+ * - They are a super admin
+ * - They have edit permission (HR/Manager)
+ * - They are editing their own profile (Basic employees)
  */
 export const canUpdateUsers: Access = ({ req: { user } }) => {
   if (!user) return false
-  return hasPermission(user as User, 'users', 'edit')
+
+  // Super admins can edit all
+  if (isSuperAdmin(user as User)) return true
+
+  // HR/Managers with edit permission can edit all users
+  if (hasPermission(user as User, 'users', 'edit')) {
+    return true
+  }
+
+  // Basic employees can only edit their own profile
+  return {
+    id: {
+      equals: user.id,
+    },
+  }
 }
 
 /**
@@ -62,17 +93,24 @@ export const canUpdateUsers: Access = ({ req: { user } }) => {
  */
 export const canDeleteUsers: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return hasPermission(user as User, 'users', 'delete')
 }
 
 /**
  * Payroll read access:
+ * - Super admins can view all
  * - HR can view all
  * - Department managers can view their department
  * - Everyone can view their own
  */
 export const canReadPayroll: Access = ({ req: { user } }) => {
   if (!user) return false
+
+  // Super admins can view all
+  if (isSuperAdmin(user as User)) {
+    return true
+  }
 
   // HR can view all
   if (canViewAll(user as User, 'payroll')) {
@@ -107,6 +145,11 @@ export const canReadPayroll: Access = ({ req: { user } }) => {
 export const canReadPayrollSettings: Access = ({ req: { user } }) => {
   if (!user) return false
 
+  // Super admins can view all
+  if (isSuperAdmin(user as User)) {
+    return true
+  }
+
   // HR can view all
   if (isHR(user as User)) {
     return true
@@ -121,10 +164,11 @@ export const canReadPayrollSettings: Access = ({ req: { user } }) => {
 }
 
 /**
- * Payroll create/edit access - only HR
+ * Payroll create/edit access - only HR and super admins
  */
 export const canManagePayroll: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return (
     hasPermission(user as User, 'payroll', 'create') ||
     hasPermission(user as User, 'payroll', 'edit')
@@ -133,12 +177,18 @@ export const canManagePayroll: Access = ({ req: { user } }) => {
 
 /**
  * Leaves read access:
+ * - Super admins can view all
  * - HR can view all
  * - Department managers can view their department
  * - Everyone can view their own
  */
 export const canReadLeaves: Access = ({ req: { user } }) => {
   if (!user) return false
+
+  // Super admins can view all
+  if (isSuperAdmin(user as User)) {
+    return true
+  }
 
   // HR can view all
   if (canViewAll(user as User, 'leaves')) {
@@ -172,6 +222,7 @@ export const canReadLeaves: Access = ({ req: { user } }) => {
  */
 export const canCreateLeaves: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return hasPermission(user as User, 'leaves', 'create')
 }
 
@@ -180,16 +231,23 @@ export const canCreateLeaves: Access = ({ req: { user } }) => {
  */
 export const canApproveLeaves: FieldAccess = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return hasPermission(user as User, 'leaves', 'approve')
 }
 
 /**
  * Inventory read access:
+ * - Super admins can view all
  * - HR can view all
  * - Everyone can view their assigned items
  */
 export const canReadInventory: Access = ({ req: { user } }) => {
   if (!user) return false
+
+  // Super admins can view all
+  if (isSuperAdmin(user as User)) {
+    return true
+  }
 
   // HR can view all
   if (canViewAll(user as User, 'inventory')) {
@@ -213,6 +271,7 @@ export const canReadInventory: Access = ({ req: { user } }) => {
  */
 export const canManageInventory: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return (
     hasPermission(user as User, 'inventory', 'create') ||
     hasPermission(user as User, 'inventory', 'edit')
@@ -224,6 +283,7 @@ export const canManageInventory: Access = ({ req: { user } }) => {
  */
 export const canReadDepartments: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return hasPermission(user as User, 'departments', 'view') || isHR(user as User)
 }
 
@@ -232,6 +292,7 @@ export const canReadDepartments: Access = ({ req: { user } }) => {
  */
 export const canManageDepartments: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return (
     hasPermission(user as User, 'departments', 'create') ||
     hasPermission(user as User, 'departments', 'edit')
@@ -243,5 +304,6 @@ export const canManageDepartments: Access = ({ req: { user } }) => {
  */
 export const canManageRoles: Access = ({ req: { user } }) => {
   if (!user) return false
+  if (isSuperAdmin(user as User)) return true
   return hasPermission(user as User, 'system', 'manageRoles') || isHR(user as User)
 }

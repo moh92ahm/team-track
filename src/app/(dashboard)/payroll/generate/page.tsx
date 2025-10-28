@@ -25,7 +25,7 @@ export default async function GeneratePayrollPage() {
       const employees = await payload.find({
         collection: 'users',
         where: {
-          isActive: { equals: true },
+          and: [{ isActive: { equals: true } }, { isSuperAdmin: { not_equals: true } }],
         },
         limit: 100,
         user,

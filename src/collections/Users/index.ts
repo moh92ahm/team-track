@@ -28,6 +28,21 @@ export const Users: CollectionConfig = {
       required: true,
     },
     {
+      name: 'isSuperAdmin',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Super admins have full access and are hidden from the dashboard user list',
+      },
+      access: {
+        // Only super admins can set other super admins
+        update: ({ req: { user } }) => {
+          return (user as any)?.isSuperAdmin === true
+        },
+      },
+    },
+    {
       name: 'photo',
       type: 'upload',
       relationTo: 'media',
@@ -41,11 +56,27 @@ export const Users: CollectionConfig = {
       admin: {
         description: 'Assign multiple departments (e.g., Sales + English, or just HR)',
       },
+      access: {
+        // Only HR/Managers can update departments
+        update: ({ req: { user } }) => {
+          if (!user) return false
+          const u = user as any
+          return u.isSuperAdmin === true || u.role?.permissions?.users?.edit === true
+        },
+      },
     },
     {
       name: 'role',
       type: 'relationship',
       relationTo: 'roles',
+      access: {
+        // Only HR/Managers can update roles
+        update: ({ req: { user } }) => {
+          if (!user) return false
+          const u = user as any
+          return u.isSuperAdmin === true || u.role?.permissions?.users?.edit === true
+        },
+      },
     },
     {
       name: 'jobTitle',
@@ -54,12 +85,18 @@ export const Users: CollectionConfig = {
     {
       name: 'birthDate',
       type: 'date',
-      required: true,
+      required: false,
+      admin: {
+        description: 'Not required for super admins',
+      },
     },
     {
       name: 'primaryPhone',
       type: 'text',
-      required: true,
+      required: false,
+      admin: {
+        description: 'Not required for super admins',
+      },
     },
     {
       name: 'secondaryPhone',
@@ -93,6 +130,14 @@ export const Users: CollectionConfig = {
       ],
       defaultValue: 'other',
       required: true,
+      access: {
+        // Only HR/Managers can update employment type
+        update: ({ req: { user } }) => {
+          if (!user) return false
+          const u = user as any
+          return u.isSuperAdmin === true || u.role?.permissions?.users?.edit === true
+        },
+      },
     },
     {
       name: 'nationality',
@@ -120,22 +165,13 @@ export const Users: CollectionConfig = {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,
-    },
-    {
-      name: 'isSystemUser',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        position: 'sidebar',
-        description: 'System users are hidden from regular user listings',
-        readOnly: true,
-      },
       access: {
-        // Only super admins can see this field
-        read: ({ req: { user } }) => {
-          return user?.email === 'admin@teamtrack.local'
+        // Only HR/Managers can update active status
+        update: ({ req: { user } }) => {
+          if (!user) return false
+          const u = user as any
+          return u.isSuperAdmin === true || u.role?.permissions?.users?.edit === true
         },
-        update: () => false, // Can't be changed via UI
       },
     },
     {
@@ -146,6 +182,14 @@ export const Users: CollectionConfig = {
           pickerAppearance: 'dayAndTime',
         },
         position: 'sidebar',
+      },
+      access: {
+        // Only HR/Managers can update join date
+        update: ({ req: { user } }) => {
+          if (!user) return false
+          const u = user as any
+          return u.isSuperAdmin === true || u.role?.permissions?.users?.edit === true
+        },
       },
       hooks: {
         beforeChange: [

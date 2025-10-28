@@ -14,6 +14,11 @@ export default async function NewLeavePage() {
     collection: 'users',
     limit: 100,
     sort: 'fullName',
+    where: {
+      isSuperAdmin: {
+        not_equals: true,
+      },
+    },
     user,
   })
 

@@ -24,6 +24,11 @@ export const Payroll: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+      filterOptions: {
+        isSuperAdmin: {
+          not_equals: true,
+        },
+      },
     },
     {
       name: 'period',

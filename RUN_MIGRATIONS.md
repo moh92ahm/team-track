@@ -75,6 +75,7 @@ After running migrations, you should see output like:
 ### Step 7: Visit Your App
 
 Now go back to your Vercel URL:
+
 ```
 https://your-app.vercel.app/admin/create-first-user
 ```
@@ -99,37 +100,42 @@ import config from '@/payload.config'
 export async function POST(request: NextRequest) {
   // Verify secret token
   const token = request.headers.get('x-migration-token')
-  
+
   if (token !== process.env.MIGRATION_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const payload = await getPayload({ config })
-    
+
     // Run migrations
     await payload.db.migrate()
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Migrations completed successfully' 
+
+    return NextResponse.json({
+      success: true,
+      message: 'Migrations completed successfully',
     })
   } catch (error) {
     console.error('Migration error:', error)
-    return NextResponse.json({ 
-      error: 'Migration failed', 
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Migration failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
+    )
   }
 }
 ```
 
 ### Add to Vercel Environment Variables:
+
 ```
 MIGRATION_SECRET=your_secure_random_token_here
 ```
 
 ### Call the endpoint:
+
 ```bash
 curl -X POST https://your-app.vercel.app/api/migrate \
   -H "x-migration-token: your_secure_random_token_here"
@@ -174,6 +180,7 @@ This is normal for first run. The command will run all pending migrations in ord
 ### Error: "Cannot connect to database"
 
 Check:
+
 1. DATABASE_URI is correctly set in Vercel
 2. Supabase project is active
 3. Database password is correct

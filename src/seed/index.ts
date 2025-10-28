@@ -2,7 +2,6 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import type { Payload } from 'payload'
 import { seedRolesAndDepartments } from './roles-departments'
-import { seedSuperAdmin } from './super-admin'
 
 export async function seed() {
   const payload = await getPayload({ config: configPromise })
@@ -12,10 +11,6 @@ export async function seed() {
   try {
     // Clear existing data first (optional)
     // await clearDatabase(payload)
-
-    // 0. Create Super Admin (first, before everything)
-    console.log('👑 Creating super admin...')
-    await seedSuperAdmin(payload)
 
     // 1. Create Roles and Departments
     console.log('📁 Creating roles and departments...')

@@ -70,70 +70,61 @@ That's it! The Docker instance will help you get up and running quickly while al
 
 ## 🚀 Production Deployment
 
-### Deploy to Vercel with Supabase (Automatic)
+### Deploy to Vercel with Supabase
 
-This project is configured for **zero-config deployment** to Vercel with automatic migrations!
+PayloadCMS automatically creates database tables on first run - **no migrations needed!**
 
 #### Quick Deploy (3 Steps)
 
-1. **Setup Supabase**: Create a project and get your database connection string
+1. **Setup Supabase**: Create a PostgreSQL database and get connection string
 
-2. **Configure Vercel**: Add environment variables (see below)
+2. **Set Environment Variables in Vercel**:
 
-3. **Deploy**: Push to GitHub - Vercel auto-deploys and runs migrations!
+   ```bash
+   DATABASE_URI=postgresql://...           # Supabase connection
+   PAYLOAD_SECRET=<base64>                # Generate with ./scripts/generate-secrets.sh
+   NEXT_PUBLIC_SERVER_URL=https://your-app.vercel.app
+   EMAIL_PROVIDER=resend                   # Email provider
+   RESEND_API_KEY=re_xxxxx                # Your email API key
+   ```
 
+3. **Push to Git**:
    ```bash
    git push
    ```
-   
-   That's it! ✅ Migrations run automatically  
-   ✅ Super admin created automatically  
-   ✅ App ready to use!
+
+That's it! ✅ Payload auto-creates database schema  
+✅ Visit `/admin` to create your first user  
+✅ App ready to use!
+
+#### Detailed Guide
+
+See **[DEPLOY.md](./DEPLOY.md)** for complete step-by-step instructions.
 
 #### Environment Variables
 
-Set these in your Vercel dashboard:
+See [`.env.example`](./.env.example) for all required variables:
 
-```bash
-DATABASE_URI=postgresql://...         # Supabase connection string  
-PAYLOAD_SECRET=<base64-secret>       # Generate with ./scripts/generate-secrets.sh
-SUPER_ADMIN_PASSWORD=YourPassword123 # Your super admin password
-NEXT_PUBLIC_SERVER_URL=https://your-app.vercel.app
-# + Email provider settings (Resend recommended)
-```
-
-#### Detailed Guides
-
-- 🚀 **[Production Setup](./PRODUCTION_SETUP.md)** - **Start here!** How deployment works
-- 📖 **[Complete Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Comprehensive step-by-step instructions
-- ✅ **[Deployment Checklist](./DEPLOYMENT_CHECKLIST.md)** - Quick checklist for deployment
-- 💻 **[Vercel CLI Reference](./VERCEL_CLI_REFERENCE.md)** - Command-line tools and workflows
-
-#### Environment Variables
-
-See [`.env.example`](./.env.example) for all required environment variables. Key variables include:
-
-- `DATABASE_URI`: PostgreSQL connection string (Supabase)
-- `PAYLOAD_SECRET`: Base64-encoded secret for PayloadCMS
-- `NEXT_PUBLIC_SERVER_URL`: Your application URL
-- Email configuration (Resend, SendGrid, or SMTP)
+- `DATABASE_URI`: Supabase PostgreSQL connection (port 6543, Transaction mode)
+- `PAYLOAD_SECRET`: Base64-encoded secret
+- `NEXT_PUBLIC_SERVER_URL`: Your Vercel app URL
+- Email provider settings (Resend recommended)
 
 For security, all secrets should be generated using Base64 encoding:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+./scripts/generate-secrets.sh
 ```
 
 ## 📚 Documentation
 
-- 🚀 **[Quick Start Guide](./QUICK_START.md)** - **Start here!** Fast reference for deployment
-- 📋 **[Production Setup](./PRODUCTION_SETUP.md)** - How deployment & migrations work
-- [RBAC Documentation](./RBAC_DOCUMENTATION.md) - Role-based access control
-- [Seed Data Documentation](./SEED_DATA_DOCUMENTATION.md) - Initial data setup
+- 🚀 **[Deployment Guide](./DEPLOY.md)** - **Start here!** Simple Vercel deployment
+- 🔐 **[Access Control](./ACCESS_CONTROL.md)** - User roles and permissions explained
+- 👑 **[Super Admin](./SUPER_ADMIN.md)** - Creating system administrators
+- [RBAC Documentation](./RBAC_DOCUMENTATION.md) - Role-based access control details
+- [Seed Data Documentation](./SEED_DATA_DOCUMENTATION.md) - Local development test data
 - [Department Structure](./DEPARTMENT_STRUCTURE.md) - Organization structure
 - [Payroll Components](./PAYROLL_COMPONENTS_UPDATE.md) - Payroll system details
-- [Super Admin Guide](./SUPER_ADMIN_GUIDE.md) - Hidden administrator setup
-- [Run Migrations](./RUN_MIGRATIONS.md) - Database migration instructions
 
 ## 🛠️ Tech Stack
 

@@ -6,11 +6,12 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get('payload-token')?.value
   const path = req.nextUrl.pathname
 
-  // Allow Payload admin panel & API, login page, and static assets
+  // Allow Payload admin panel & API, login page, signup, and static assets
   if (
     path.startsWith('/admin') ||
     path.startsWith('/api') ||
     path.startsWith('/login') ||
+    path.startsWith('/signup') ||
     path.startsWith('/_next') ||
     path.startsWith('/static') ||
     path === '/favicon.ico'
@@ -41,6 +42,24 @@ export async function middleware(req: NextRequest) {
       const response = NextResponse.redirect(new URL('/login', req.url))
       response.cookies.delete('payload-token')
       return response
+    }
+
+    const userData = await verifyResponse.json()
+    const user = userData.user
+
+    // Check if user is super admin or has admin permissions
+    const isSuperAdmin = user.isSuperAdmin === true
+    const hasAdminPermissions = user.role?.permissions?.users?.viewAll === true
+    const isBasicEmployee = !isSuperAdmin && !hasAdminPermissions
+
+    // Basic employees trying to access dashboard should go to profile
+    if (isBasicEmployee && path === '/') {
+      return NextResponse.redirect(new URL('/profile', req.url))
+    }
+
+    // Super admins and admins trying to access employee profile should go to dashboard
+    if (!isBasicEmployee && path.startsWith('/profile')) {
+      return NextResponse.redirect(new URL('/', req.url))
     }
 
     return NextResponse.next()
