@@ -43,23 +43,20 @@ RUN mkdir -p /app/public/media \
     && chmod 1777 /tmp \
     && chown -R nextjs:nodejs /app
 
-# Copy package files first (needed for pnpm prune)
-COPY --chown=nextjs:nodejs package.json ./package.json
-COPY --chown=nextjs:nodejs pnpm-lock.yaml ./pnpm-lock.yaml
-
-# Copy production node_modules and prune dev dependencies
+# Copy production node_modules (no pruning - simpler and more reliable)
 COPY --from=deps /app/node_modules ./node_modules
-RUN CI=true pnpm prune --prod
 
 # Copy the built application from build context (includes .next built by CI)
 COPY --chown=nextjs:nodejs .next ./.next
 COPY --chown=nextjs:nodejs public ./public
+COPY --chown=nextjs:nodejs package.json ./package.json
 COPY --chown=nextjs:nodejs next.config.mjs ./next.config.mjs
 COPY --chown=nextjs:nodejs postcss.config.mjs ./postcss.config.mjs
 COPY --chown=nextjs:nodejs tsconfig.json ./tsconfig.json
 COPY --chown=nextjs:nodejs middleware.ts ./middleware.ts
 COPY --chown=nextjs:nodejs components.json ./components.json
 COPY --chown=nextjs:nodejs next-env.d.ts ./next-env.d.ts
+# Copy src directory (includes payload.config.ts and payload-types.ts)
 COPY --chown=nextjs:nodejs src ./src
 COPY --chown=nextjs:nodejs scripts ./scripts
 
