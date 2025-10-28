@@ -40,15 +40,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       if (response.ok) {
         const data = await response.json()
 
-        // Check if user is a basic employee (no admin/manager permissions)
         const user = data.user
+        const role =
+          typeof user?.role === 'object' && user?.role !== null ? (user.role as { level?: string }) : null
+        const roleLevel = role?.level
 
-        // Super admins or users with viewAll permission go to dashboard
         const isSuperAdmin = user?.isSuperAdmin === true
-        const hasAdminPermissions = user?.role?.permissions?.users?.viewAll === true
+        const isManagerOrAdmin = roleLevel === 'admin' || roleLevel === 'manager'
 
         // Redirect based on user role
-        if (isSuperAdmin || hasAdminPermissions) {
+        if (isSuperAdmin || isManagerOrAdmin) {
           router.push('/') // Dashboard for Super Admins/HR/Managers
         } else {
           router.push('/profile') // Profile for basic employees

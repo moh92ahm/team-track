@@ -1,14 +1,15 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '@/access/authenticated'
+import { superAdminOnly } from '@/access/authenticated'
+import { canManageInventory, canReadInventory } from '@/access/rbac'
 
 export const Inventory: CollectionConfig = {
   slug: 'inventory',
   access: {
-    admin: authenticated,
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    admin: superAdminOnly,
+    create: canManageInventory,
+    delete: canManageInventory,
+    read: canReadInventory,
+    update: canManageInventory,
   },
   admin: {
     useAsTitle: 'itemType',

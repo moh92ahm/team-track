@@ -11,10 +11,15 @@ export default async function EmployeeProfilePage() {
     redirect('/login')
   }
 
-  // Check if user is basic employee (not super admin, HR, or Manager)
+  // Determine if user should be restricted to the employee experience
   const isSuperAdmin = user.isSuperAdmin === true
-  const hasAdminPermissions = user.role?.permissions?.users?.viewAll === true
-  const isBasicEmployee = !isSuperAdmin && !hasAdminPermissions
+  const role =
+    typeof user.role === 'object' && user.role !== null ? (user.role as { level?: string }) : null
+  const roleLevel = role?.level
+  const isManagerOrAdmin = roleLevel === 'admin' || roleLevel === 'manager'
+  const isRestrictedLevel = roleLevel === 'restricted'
+  const isEmployeeLevel = roleLevel === 'employee' || isRestrictedLevel || roleLevel === undefined
+  const isBasicEmployee = !isSuperAdmin && !isManagerOrAdmin && isEmployeeLevel
 
   // Only basic employees should access this page
   if (!isBasicEmployee) {

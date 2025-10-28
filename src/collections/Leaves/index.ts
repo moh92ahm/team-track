@@ -1,14 +1,21 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '@/access/authenticated'
+import { superAdminOnly } from '@/access/authenticated'
+import {
+  canApproveLeaves,
+  canCreateLeaves,
+  canDeleteLeaves,
+  canReadLeaves,
+  canUpdateLeaves,
+} from '@/access/rbac'
 
 export const LeaveDays: CollectionConfig = {
   slug: 'leave-days',
   access: {
-    admin: authenticated,
-    read: authenticated,
-    delete: authenticated,
-    create: authenticated,
-    update: authenticated,
+    admin: superAdminOnly,
+    read: canReadLeaves,
+    delete: canDeleteLeaves,
+    create: canCreateLeaves,
+    update: canUpdateLeaves,
   },
   admin: {
     useAsTitle: 'user',
@@ -77,6 +84,9 @@ export const LeaveDays: CollectionConfig = {
         { label: 'Cancelled', value: 'cancelled' },
       ],
       defaultValue: 'requested',
+      access: {
+        update: canApproveLeaves,
+      },
     },
     {
       name: 'reason',

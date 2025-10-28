@@ -1,10 +1,10 @@
-import { authenticated } from '@/access/authenticated'
+import { authenticated, superAdminOnly } from '@/access/authenticated'
 import type { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
-    admin: authenticated,
+    admin: superAdminOnly,
     create: authenticated,
     delete: authenticated,
     read: authenticated,

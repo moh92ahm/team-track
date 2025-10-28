@@ -1,14 +1,15 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '@/access/authenticated'
+import { superAdminOnly } from '@/access/authenticated'
+import { canManagePayroll, canReadPayrollSettings } from '@/access/rbac'
 
 export const PayrollSettings: CollectionConfig = {
   slug: 'payroll-settings',
   access: {
-    admin: authenticated,
-    read: authenticated,
-    delete: authenticated,
-    create: authenticated,
-    update: authenticated,
+    admin: superAdminOnly,
+    read: canReadPayrollSettings,
+    delete: canManagePayroll,
+    create: canManagePayroll,
+    update: canManagePayroll,
   },
   admin: {
     useAsTitle: 'description',

@@ -227,6 +227,42 @@ export const canCreateLeaves: Access = ({ req: { user } }) => {
 }
 
 /**
+ * Leaves can be updated by approvers or the requester
+ */
+export const canUpdateLeaves: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (isSuperAdmin(user as User)) return true
+
+  if (hasPermission(user as User, 'leaves', 'approve')) {
+    return true
+  }
+
+  return {
+    user: {
+      equals: user.id,
+    },
+  }
+}
+
+/**
+ * Leaves can be deleted by approvers or the requester
+ */
+export const canDeleteLeaves: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (isSuperAdmin(user as User)) return true
+
+  if (hasPermission(user as User, 'leaves', 'delete')) {
+    return true
+  }
+
+  return {
+    user: {
+      equals: user.id,
+    },
+  }
+}
+
+/**
  * Only managers and HR can approve leaves
  */
 export const canApproveLeaves: FieldAccess = ({ req: { user } }) => {

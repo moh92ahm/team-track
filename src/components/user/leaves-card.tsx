@@ -11,9 +11,10 @@ import { Plus } from 'lucide-react'
 
 interface LeavesCardProps {
   leaves?: LeaveDay[]
+  createHref?: string
 }
 
-export function LeavesCard({ leaves = [] }: LeavesCardProps) {
+export function LeavesCard({ leaves = [], createHref = '/leaves/new' }: LeavesCardProps) {
   const getStatusVariant = (
     status: string,
   ): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -93,7 +94,7 @@ export function LeavesCard({ leaves = [] }: LeavesCardProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Leave History</h2>
-          <Link href="/leaves/new">
+          <Link href={createHref}>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Create Leave Request

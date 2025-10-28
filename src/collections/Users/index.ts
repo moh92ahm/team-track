@@ -1,15 +1,16 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '@/access/authenticated'
+import { superAdminOnly } from '@/access/authenticated'
+import { canCreateUsers, canDeleteUsers, canReadUsers, canUpdateUsers } from '@/access/rbac'
 
 export const Users: CollectionConfig = {
   slug: 'users',
   access: {
-    admin: authenticated,
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    admin: superAdminOnly,
+    create: canCreateUsers,
+    delete: canDeleteUsers,
+    read: canReadUsers,
+    update: canUpdateUsers,
   },
   admin: {
     defaultColumns: ['fullName', 'primaryPhone', 'employmentType', 'isActive'],

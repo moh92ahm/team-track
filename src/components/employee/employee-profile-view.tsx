@@ -80,7 +80,7 @@ export function EmployeeProfileView({
 
               {/* Leaves Tab */}
               <TabsContent value="leaves" className="space-y-6 mt-2">
-                <LeavesCard leaves={leaves} />
+                <LeavesCard leaves={leaves} createHref="/profile/leaves/new" />
               </TabsContent>
 
               {/* Inventory Tab */}

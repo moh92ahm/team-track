@@ -2,74 +2,100 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.get('payload-token')?.value
-  const path = req.nextUrl.pathname
+const PUBLIC_PATHS = new Set(['/login', '/signup'])
 
-  // Allow Payload admin panel & API, login page, signup, and static assets
-  if (
-    path.startsWith('/admin') ||
-    path.startsWith('/api') ||
-    path.startsWith('/login') ||
-    path.startsWith('/signup') ||
-    path.startsWith('/_next') ||
-    path.startsWith('/static') ||
-    path === '/favicon.ico'
-  ) {
+const shouldBypass = (pathname: string) => {
+  return (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname === '/favicon.ico' ||
+    pathname.startsWith('/api')
+  )
+}
+
+const isProfileRoute = (pathname: string) => {
+  return pathname === '/profile' || pathname.startsWith('/profile/')
+}
+
+const requiresSuperAdminAccess = (pathname: string) =>
+  pathname.startsWith('/admin') || pathname.startsWith('/payload')
+
+export async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname
+
+  if (shouldBypass(pathname) || PUBLIC_PATHS.has(pathname)) {
     return NextResponse.next()
   }
 
-  // Check if user is authenticated
+  const token = req.cookies.get('payload-token')?.value
+
+  // Allow unauthenticated users to reach Payload admin login assets
   if (!token) {
+    if (requiresSuperAdminAccess(pathname)) {
+      return NextResponse.next()
+    }
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // Optionally verify the token with Payload (more secure but slower)
+  let user: any
+
   try {
-    const verifyResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_PAYLOAD_URL || process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/users/me`,
-      {
-        headers: {
-          Authorization: `JWT ${token}`,
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
+    const baseUrl =
+      process.env.NEXT_PUBLIC_PAYLOAD_URL ||
+      process.env.PAYLOAD_PUBLIC_SERVER_URL ||
+      'http://localhost:3000'
+
+    const verifyResponse = await fetch(`${baseUrl}/api/users/me?depth=2`, {
+      headers: {
+        Authorization: `JWT ${token}`,
+        'Content-Type': 'application/json',
       },
-    )
+      cache: 'no-store',
+    })
 
     if (!verifyResponse.ok) {
-      // Token is invalid, redirect to login
       const response = NextResponse.redirect(new URL('/login', req.url))
       response.cookies.delete('payload-token')
       return response
     }
 
-    const userData = await verifyResponse.json()
-    const user = userData.user
+    const payload = await verifyResponse.json()
+    user = payload.user
+  } catch (error) {
+    console.log('Token verification failed:', error)
+    const response = NextResponse.redirect(new URL('/login', req.url))
+    response.cookies.delete('payload-token')
+    return response
+  }
 
-    // Check if user is super admin or has admin permissions
-    const isSuperAdmin = user.isSuperAdmin === true
-    const hasAdminPermissions = user.role?.permissions?.users?.viewAll === true
-    const isBasicEmployee = !isSuperAdmin && !hasAdminPermissions
+  const role =
+    user?.role && typeof user.role === 'object' ? (user.role as { level?: string }) : null
+  const roleLevel = role?.level
+  const isSuperAdmin = user?.isSuperAdmin === true
+  const isManagerOrAdmin = roleLevel === 'admin' || roleLevel === 'manager'
+  const isEmployeeOnly = !isSuperAdmin && !isManagerOrAdmin
 
-    // Basic employees trying to access dashboard should go to profile
-    if (isBasicEmployee && path === '/') {
-      return NextResponse.redirect(new URL('/profile', req.url))
-    }
-
-    // Super admins and admins trying to access employee profile should go to dashboard
-    if (!isBasicEmployee && path.startsWith('/profile')) {
+  if (requiresSuperAdminAccess(pathname)) {
+    if (!isSuperAdmin) {
       return NextResponse.redirect(new URL('/', req.url))
     }
-
-    return NextResponse.next()
-  } catch (error) {
-    // If verification fails, allow through but log the error
-    console.log('Token verification failed:', error)
     return NextResponse.next()
   }
+
+  if (isEmployeeOnly) {
+    if (isProfileRoute(pathname)) {
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL('/profile', req.url))
+  }
+
+  if (!isEmployeeOnly && isProfileRoute(pathname)) {
+    return NextResponse.redirect(new URL('/', req.url))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/((?!api|admin|_next|static|favicon.ico|login).*)'],
+  matcher: ['/((?!_next|static|favicon.ico).*)'],
 }

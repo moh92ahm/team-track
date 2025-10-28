@@ -1,14 +1,15 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '@/access/authenticated'
+import { superAdminOnly } from '@/access/authenticated'
+import { canManageDepartments, canReadDepartments } from '@/access/rbac'
 
 export const Departments: CollectionConfig = {
   slug: 'departments',
   access: {
-    admin: authenticated,
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    admin: superAdminOnly,
+    create: canManageDepartments,
+    delete: canManageDepartments,
+    read: canReadDepartments,
+    update: canManageDepartments,
   },
   admin: {
     useAsTitle: 'name',

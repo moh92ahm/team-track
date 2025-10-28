@@ -2,17 +2,15 @@
 
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { CalendarDays, Mail, MapPin, Phone } from 'lucide-react'
+import {  Mail, MapPin, Phone } from 'lucide-react'
 import type { User } from '@/payload-types'
-import { formatDate } from '@/lib/date-utils'
 
 interface InfoCardProps {
   user: User
 }
 
 export function InfoCard({ user }: InfoCardProps) {
-  const formatPhoneNumbers = (phones: string | string[] | undefined) => {
+  const formatPhoneNumbers = (phones: string | string[] | null | undefined) => {
     if (!phones) return 'Not provided'
     if (Array.isArray(phones)) {
       return phones.join(', ')

@@ -1,9 +1,12 @@
 import type { AccessArgs } from 'payload'
-
 import type { User } from '@/payload-types'
 
-type isAuthenticated = (args: AccessArgs<User>) => boolean
+type AccessGuard = (args: AccessArgs<User>) => boolean
 
-export const authenticated: isAuthenticated = ({ req: { user } }) => {
+export const authenticated: AccessGuard = ({ req: { user } }) => {
   return Boolean(user)
+}
+
+export const superAdminOnly: AccessGuard = ({ req: { user } }) => {
+  return Boolean((user as any)?.isSuperAdmin === true)
 }

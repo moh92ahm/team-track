@@ -55,6 +55,8 @@ interface LeaveDayFormProps {
   users: Option[]
   initialData?: Partial<import('@/payload-types').LeaveDay>
   showStatusField?: boolean // For admin users only
+  lockedUserOption?: Option
+  returnHref?: string
 }
 
 export function LeaveDayForm({
@@ -64,7 +66,21 @@ export function LeaveDayForm({
   users,
   initialData,
   showStatusField = false,
+  lockedUserOption,
+  returnHref = '/leaves',
 }: LeaveDayFormProps) {
+  const defaultUserValue = React.useMemo(() => {
+    if (initialData) {
+      if (typeof initialData.user === 'object' && initialData.user) {
+        return String((initialData.user as any).id)
+      }
+      if (initialData.user) {
+        return String(initialData.user)
+      }
+    }
+    return lockedUserOption?.value ?? ''
+  }, [initialData, lockedUserOption])
+
   const {
     register,
     control,
@@ -75,13 +91,7 @@ export function LeaveDayForm({
   } = useForm<LeaveDayFormValues>({
     resolver: zodResolver(LeaveDaySchema) as any,
     defaultValues: {
-      user: initialData
-        ? typeof initialData.user === 'object' && initialData.user
-          ? String((initialData.user as any).id)
-          : initialData.user
-            ? String(initialData.user)
-            : ''
-        : '',
+      user: defaultUserValue,
       type: (initialData?.type as any) || 'annual',
       startDate: initialData?.startDate
         ? new Date(initialData.startDate).toISOString().split('T')[0]
@@ -98,6 +108,12 @@ export function LeaveDayForm({
 
   const formRef = React.useRef<HTMLFormElement>(null)
   const [nativeSubmitting, setNativeSubmitting] = React.useState(false)
+
+  React.useEffect(() => {
+    if (lockedUserOption) {
+      setValue('user', lockedUserOption.value, { shouldValidate: true })
+    }
+  }, [lockedUserOption, setValue])
 
   const statusOptions: Option[] = [
     { label: 'Requested', value: 'requested' },
@@ -118,7 +134,7 @@ export function LeaveDayForm({
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <Link href="/leaves">
+            <Link href={returnHref}>
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -149,7 +165,8 @@ export function LeaveDayForm({
                   placeholder="Select user"
                   options={users}
                   error={errors.user?.message as string | undefined}
-                  searchable={true}
+                  searchable={!lockedUserOption}
+                  disabled={Boolean(lockedUserOption)}
                 />
 
                 <SelectField
@@ -235,7 +252,7 @@ export function LeaveDayForm({
               </div>
 
               <div className="flex justify-end space-x-4 pt-4">
-                <Link href="/leaves">
+                <Link href={returnHref}>
                   <Button type="button" variant="outline" className="cursor-pointer">
                     <X className="h-4 w-4 mr-2" />
                     Cancel

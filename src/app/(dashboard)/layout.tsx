@@ -4,10 +4,21 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { AppSidebar } from '@/components/app-sidebar'
 import { requireAuth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 
 export default async function DashboardLayout(props: { children: React.ReactNode }) {
   // This will redirect to /login if user is not authenticated
   const user = await requireAuth()
+
+  const role =
+    typeof user?.role === 'object' && user.role !== null ? (user.role as { level?: string }) : null
+  const roleLevel = role?.level
+  const isSuperAdmin = user?.isSuperAdmin === true
+  const isManagerOrAdmin = roleLevel === 'admin' || roleLevel === 'manager'
+
+  if (!isSuperAdmin && !isManagerOrAdmin) {
+    redirect('/profile')
+  }
 
   const { children } = props
 
