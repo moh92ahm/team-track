@@ -47,6 +47,10 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
     },
+    // Skip database connection during build in CI
+    ...(process.env.SKIP_DB_CONNECTION === 'true' && {
+      disableCreateDatabase: true,
+    }),
   }),
   sharp,
   plugins: [

@@ -66,6 +66,8 @@ jobs:
         env:
           NODE_ENV: production
           SKIP_DB_CONNECTION: 'true'
+          # Provide mock DATABASE_URI to prevent connection errors during build
+          DATABASE_URI: 'postgresql://user:password@localhost:5432/mockdb'
       - name: Log into GHCR
         uses: docker/login-action@v2
         with:

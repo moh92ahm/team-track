@@ -6,6 +6,10 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { requireAuth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
+// Force dynamic rendering for all dashboard pages - prevents static generation at build time
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function DashboardLayout(props: { children: React.ReactNode }) {
   // This will redirect to /login if user is not authenticated
   const user = await requireAuth()

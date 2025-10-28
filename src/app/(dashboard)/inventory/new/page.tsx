@@ -4,6 +4,10 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { InventoryForm } from '@/components/inventory/forms/inventory-form'
 
+// Force dynamic rendering - do not generate static page at build time
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function NewInventoryPage() {
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers: await headers() })
