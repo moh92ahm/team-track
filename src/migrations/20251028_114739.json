@@ -1,5 +1,5 @@
 {
-  "id": "2317a3ec-04ac-4dfc-8739-2b77cd09f9d0",
+  "id": "447754b9-4c9f-428d-8fde-521a12a71926",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -108,6 +108,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "is_super_admin": {
+          "name": "is_super_admin",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
         "photo_id": {
           "name": "photo_id",
           "type": "integer",
@@ -130,13 +137,13 @@
           "name": "birth_date",
           "type": "timestamp(3) with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "primary_phone": {
           "name": "primary_phone",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "secondary_phone": {
           "name": "secondary_phone",
