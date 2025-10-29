@@ -69,13 +69,18 @@ export function ProfileCard({ user }: ProfileCardProps) {
           </div>
           <div className="flex-1">
             <div className="flex items-center space-x-4 mt-3">
+              <div className='text-sm'>
+                <span className="text-muted-foreground">Status: </span>
+                <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                  {user.isActive ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4 mt-3">
               <div className="text-sm">
                 <span className="text-muted-foreground">Joined At: </span>
                 <span className="font-medium">{formatDate(user.joinedAt)}</span>
               </div>
-              <Badge variant={user.isActive ? 'default' : 'secondary'}>
-                {user.isActive ? 'Active' : 'Inactive'}
-              </Badge>
             </div>
             <div className="flex flex-row items-center space-x-4 mt-3">
               <div className="text-sm">

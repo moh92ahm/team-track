@@ -121,7 +121,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   {loading ? 'Logging in...' : 'Login'}
                 </Button>
                 <FieldDescription className="text-center">
-                  Need an account? Contact your administrator
+                  Need an account? <a href="/signup" className="underline hover:text-primary">Sign up here</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>
