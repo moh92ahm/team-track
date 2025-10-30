@@ -9,17 +9,19 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import type { InventoryStats } from '@/lib/actions/dashboard'
+import { cn } from '@/lib/utils'
 
 interface InventoryOverviewCardProps {
   stats: InventoryStats
+  className?: string
 }
 
-export function InventoryOverviewCard({ stats }: InventoryOverviewCardProps) {
+export function InventoryOverviewCard({ stats, className }: InventoryOverviewCardProps) {
   const inUsePercentage =
     stats.total > 0 ? Math.round((stats.byStatus.inUse / stats.total) * 100) : 0
 
   return (
-    <Card className="@container/card col-span-3">
+    <Card className={cn('@container/card3', className)}>
       <CardHeader>
         <CardDescription>Total Inventory</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">

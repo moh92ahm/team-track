@@ -27,9 +27,9 @@ export default async function Page() {
           </div>
 
           {/* Overview Cards */}
-          <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-4 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6">
-            <UserOverviewCard stats={userStats} />
-            <InventoryOverviewCard stats={inventoryStats} />
+          <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 md:grid-cols-4 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6">
+            <UserOverviewCard stats={userStats} className="md:col-span-2 lg:col-span-1" />
+            <InventoryOverviewCard stats={inventoryStats} className="md:col-span-2 lg:col-span-3" />
           </div>
 
           <div className="px-4 lg:px-6">

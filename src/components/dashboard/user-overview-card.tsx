@@ -9,16 +9,18 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import type { UserStats } from '@/lib/actions/dashboard'
+import { cn } from '@/lib/utils'
 
 interface UserOverviewCardProps {
   stats: UserStats
+  className?: string
 }
 
-export function UserOverviewCard({ stats }: UserOverviewCardProps) {
+export function UserOverviewCard({ stats, className }: UserOverviewCardProps) {
   const activePercentage = stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0
 
   return (
-    <Card className="@container/card">
+    <Card className={cn('@container/card', className)}>
       <CardHeader>
         <CardDescription>Total Users</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
