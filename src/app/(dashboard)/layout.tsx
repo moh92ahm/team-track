@@ -5,10 +5,28 @@ import { SiteHeader } from '@/components/site-header'
 import { AppSidebar } from '@/components/app-sidebar'
 import { requireAuth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
 // Force dynamic rendering for all dashboard pages - prevents static generation at build time
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+
+export const metadata: Metadata = {
+  title: {
+    default: 'TeamTrack - Dashboard',
+    template: '%s | TeamTrack',
+  },
+  description: 'Employee management and payroll system',
+  icons: {
+    icon: [
+      { url: '/favicon/favicon.ico' },
+      { url: '/favicon/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    apple: '/favicon/apple-touch-icon.png',
+  },
+  manifest: '/favicon/site.webmanifest',
+}
 
 export default async function DashboardLayout(props: { children: React.ReactNode }) {
   // This will redirect to /login if user is not authenticated

@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { AdditionalPaymentForm } from '@/components/payroll/forms/additional-payment-form'
+
+export const metadata: Metadata = {
+  title: 'New Payment',
+  description: 'Create a new additional payment',
+}
 
 export default async function NewAdditionalPaymentPage() {
   const payload = await getPayload({ config: configPromise })

@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getCurrentUser } from '@/lib/auth'
 import { EmployeeProfileView } from '@/components/employee/employee-profile-view'
+
+export const metadata: Metadata = {
+  title: 'My Profile',
+  description: 'View and manage your profile',
+}
 
 export default async function EmployeeProfilePage() {
   const user = await getCurrentUser()

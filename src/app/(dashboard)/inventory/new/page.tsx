@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -7,6 +8,11 @@ import { InventoryForm } from '@/components/inventory/forms/inventory-form'
 // Force dynamic rendering - do not generate static page at build time
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+
+export const metadata: Metadata = {
+  title: 'New Inventory',
+  description: 'Add a new inventory item',
+}
 
 export default async function NewInventoryPage() {
   const payload = await getPayload({ config: configPromise })

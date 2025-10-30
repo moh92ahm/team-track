@@ -1,8 +1,13 @@
+import type { Metadata } from 'next'
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { UserOverviewCard } from '@/components/dashboard/user-overview-card'
 import { InventoryOverviewCard } from '@/components/dashboard/inventory-overview-card'
 import { getInventoryStats, getUserStats } from '@/lib/actions/dashboard'
 import { getCurrentUser } from '@/lib/auth'
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+}
 
 export default async function Page() {
   // Fetch current user and dashboard stats

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -6,6 +7,11 @@ import type { PayrollSetting } from '@/payload-types'
 
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { PayrollSettingsList } from '@/components/payroll/settings/payroll-settings-list'
+
+export const metadata: Metadata = {
+  title: 'Payroll Settings',
+  description: 'Manage employee payroll configurations',
+}
 
 export default async function PayrollSettingsPage() {
   const payload = await getPayload({ config: configPromise })

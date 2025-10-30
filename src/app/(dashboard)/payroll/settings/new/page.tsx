@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { SettingsForm } from '@/components/payroll/forms/settings-form'
+
+export const metadata: Metadata = {
+  title: 'New Payroll Setting',
+  description: 'Create a new payroll setting',
+}
 
 export default async function NewPayrollSettingPage() {
   const payload = await getPayload({ config: configPromise })

@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { UserForm } from '@/components/user/forms/user-form'
+
+export const metadata: Metadata = {
+  title: 'New User',
+  description: 'Create a new user',
+}
 
 export default async function NewUserPage() {
   const payload = await getPayload({ config: configPromise })

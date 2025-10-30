@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -5,6 +6,11 @@ import configPromise from '@payload-config'
 
 import { Tabs, TabsContent } from '@radix-ui/react-tabs'
 import { UserList } from '@/components/user/user-list'
+
+export const metadata: Metadata = {
+  title: 'Users',
+  description: 'Manage users and team members',
+}
 
 export default async function Page() {
   const payload = await getPayload({ config: configPromise })

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -5,6 +6,11 @@ import configPromise from '@payload-config'
 
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { InventoryList } from '@/components/inventory/inventory-list'
+
+export const metadata: Metadata = {
+  title: 'Inventory',
+  description: 'Manage company assets and equipment',
+}
 
 export default async function Page() {
   const payload = await getPayload({ config: configPromise })

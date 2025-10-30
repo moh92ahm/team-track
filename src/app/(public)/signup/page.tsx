@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { UserSignupForm } from '@/components/user/user-signup-form'
+
+export const metadata: Metadata = {
+  title: 'Sign Up',
+  description: 'Employee registration',
+}
 
 export default async function PublicSignupPage() {
   return (

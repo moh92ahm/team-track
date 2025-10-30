@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { LeaveDayForm } from '@/components/leaves/forms/leave-form'
+
+export const metadata: Metadata = {
+  title: 'New Leave Request',
+  description: 'Create a new leave request',
+}
 
 export default async function NewLeavePage() {
   const payload = await getPayload({ config: configPromise })

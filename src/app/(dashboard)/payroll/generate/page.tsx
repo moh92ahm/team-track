@@ -1,9 +1,15 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+
+export const metadata: Metadata = {
+  title: 'Generate Payrolls',
+  description: 'Generate monthly payroll for employees',
+}
 
 export default async function GeneratePayrollPage() {
   const payload = await getPayload({ config: configPromise })
