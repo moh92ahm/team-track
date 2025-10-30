@@ -138,7 +138,7 @@ export function DocumentsCard({ user }: DocumentsCardProps) {
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload Documents
+                  Upload
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[525px]">

@@ -39,7 +39,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center space-x-6">
+        <div className="flex flex-col items-start md:flex-row md:space-x-6">
           <Avatar className="h-20 w-20">
             <AvatarImage src={photo} alt={user.fullName} className="object-cover" />
             <AvatarFallback className="text-xl">{getInitials(user.fullName)}</AvatarFallback>

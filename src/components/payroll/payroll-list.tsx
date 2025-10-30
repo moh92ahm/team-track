@@ -125,20 +125,21 @@ export function PayrollList({ data }: PayrollListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Records</h1>
           <div className="text-sm text-muted-foreground">{filtered.length} Items</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Link href="/payroll/generate">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Generate Payrolls
             </Button>
           </Link>
           <Link href="/payroll/additional/new">
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               New Payment
             </Button>
@@ -146,12 +147,14 @@ export function PayrollList({ data }: PayrollListProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        {/* Period Filter */}
-        <div className="flex flex-col gap-2 md:flex-row md:items-center">
-          <div className="flex items-center gap-2">
+      {/* Filters & Search - Responsive Grid Layout */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] xl:grid-cols-[auto_auto]">
+        {/* Left: Period & Status Filters */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+          {/* Period Filter (Month + Year) */}
+          <div className="flex gap-2">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
@@ -167,7 +170,7 @@ export function PayrollList({ data }: PayrollListProps) {
               value={String(selectedYear)}
               onValueChange={(value) => setSelectedYear(Number(value))}
             >
-              <SelectTrigger className="w-[100px]">
+              <SelectTrigger className="w-full sm:w-[100px]">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent>
@@ -179,16 +182,15 @@ export function PayrollList({ data }: PayrollListProps) {
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Status Filter */}
-        <div className="flex flex-col gap-2">
-          <ButtonGroup className="hidden md:flex">
+          {/* Status Filter */}
+          <ButtonGroup className="overflow-x-auto">
             <Button
               type="button"
               size="sm"
               variant={statusFilter === 'all' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('all')}
+              className="flex-shrink-0"
             >
               All Status
             </Button>
@@ -206,7 +208,7 @@ export function PayrollList({ data }: PayrollListProps) {
                 size="sm"
                 variant={statusFilter === value ? 'default' : 'outline'}
                 onClick={() => setStatusFilter(value)}
-                className="capitalize"
+                className="capitalize flex-shrink-0"
               >
                 {label}
               </Button>
@@ -214,14 +216,13 @@ export function PayrollList({ data }: PayrollListProps) {
           </ButtonGroup>
         </div>
 
-        <div className="flex items-center gap-2 md:ml-auto">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        {/* Right: Search Input */}
+        <div className="flex items-top">
+          <div className="relative w-full lg:w-64 xl:w-80">
             <Input
               placeholder="Search employee, status, or type..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9"
             />
           </div>
         </div>

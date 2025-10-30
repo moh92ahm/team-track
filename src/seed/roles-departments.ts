@@ -393,10 +393,10 @@ export const seedRolesAndDepartments = async (payload: Payload): Promise<void> =
         description: 'Turkish language team',
       },
       {
-        name: 'Arabic',
+        name: 'Polish',
         category: 'language',
-        languageCode: 'ar',
-        description: 'Arabic language team',
+        languageCode: 'pl',
+        description: 'Polish language team',
       },
       {
         name: 'Russian',
@@ -417,16 +417,16 @@ export const seedRolesAndDepartments = async (payload: Payload): Promise<void> =
         description: 'German language team',
       },
       {
-        name: 'Spanish',
+        name: 'Romanian',
         category: 'language',
-        languageCode: 'es',
-        description: 'Spanish language team',
+        languageCode: 'ro',
+        description: 'Romanian language team',
       },
       {
-        name: 'Persian',
+        name: 'Ukrainian',
         category: 'language',
-        languageCode: 'fa',
-        description: 'Persian (Farsi) language team',
+        languageCode: 'uk',
+        description: 'Ukrainian language team',
       },
     ]
 

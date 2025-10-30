@@ -55,91 +55,97 @@ export function LeaveDayList({ data }: LeaveDayProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-semibold">Leaves</h1>
+      {/* Header */}
+      <div className="flex gap-4 sm:items-center justify-between">
+        <h1 className="text-xl font-semibold">Leaves</h1>
+        <Link href="/leaves/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            New Leave
+          </Button>
+        </Link>
+      </div>
+
+      {/* Filters & Search - Responsive Grid Layout */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] xl:grid-cols-[auto_auto]">
+        {/* Left: Filters (Type + Status) */}
+        <div className="flex flex-col gap-4 sm:flex-row">
+          {/* Type Filter */}
+          <ButtonGroup className="overflow-x-none">
+            <Button
+              type="button"
+              size="sm"
+              variant={typeFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setTypeFilter('all')}
+              className="flex-shrink-0"
+            >
+              All
+            </Button>
+            {(
+              [
+                { label: 'Annual', value: 'annual' },
+                { label: 'Sick', value: 'sick' },
+                { label: 'Unpaid', value: 'unpaid' },
+                { label: 'Other', value: 'other' },
+              ] as const
+            ).map(({ value, label }) => (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={typeFilter === value ? 'default' : 'outline'}
+                onClick={() => setTypeFilter(value)}
+                className="capitalize flex-shrink-0"
+              >
+                {label}
+              </Button>
+            ))}
+          </ButtonGroup>
+
+          {/* Status Filter */}
+          <ButtonGroup className="overflow-x-none">
+            <Button
+              type="button"
+              size="sm"
+              variant={statusFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('all')}
+              className="flex-shrink-0"
+            >
+              All
+            </Button>
+            {(
+              [
+                { label: 'Requested', value: 'requested' },
+                { label: 'Approved', value: 'approved' },
+                { label: 'Rejected', value: 'rejected' },
+                { label: 'Cancelled', value: 'cancelled' },
+              ] as const
+            ).map(({ value, label }) => (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={statusFilter === value ? 'default' : 'outline'}
+                onClick={() => setStatusFilter(value)}
+                className="capitalize flex-shrink-0"
+              >
+                {label}
+              </Button>
+            ))}
+          </ButtonGroup>
         </div>
-        <div className="flex gap-2 md:flex-row md:items-center">
-          <div className="flex gap-2">
-            {/* Type Filter */}
-            <ButtonGroup className="hidden md:flex">
-              <Button
-                type="button"
-                size="sm"
-                variant={typeFilter === 'all' ? 'default' : 'outline'}
-                onClick={() => setTypeFilter('all')}
-              >
-                All
-              </Button>
-              {(
-                [
-                  { label: 'Annual', value: 'annual' },
-                  { label: 'Sick', value: 'sick' },
-                  { label: 'Unpaid', value: 'unpaid' },
-                  { label: 'Other', value: 'other' },
-                ] as const
-              ).map(({ value, label }) => (
-                <Button
-                  key={value}
-                  type="button"
-                  size="sm"
-                  variant={typeFilter === value ? 'default' : 'outline'}
-                  onClick={() => setTypeFilter(value)}
-                  className="capitalize"
-                >
-                  {label}
-                </Button>
-              ))}
-            </ButtonGroup>
 
-            {/* Status Filter */}
-            <ButtonGroup className="hidden md:flex">
-              <Button
-                type="button"
-                size="sm"
-                variant={statusFilter === 'all' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('all')}
-              >
-                All
-              </Button>
-              {(
-                [
-                  { label: 'Requested', value: 'requested' },
-                  { label: 'Approved', value: 'approved' },
-                  { label: 'Rejected', value: 'rejected' },
-                  { label: 'Cancelled', value: 'cancelled' },
-                ] as const
-              ).map(({ value, label }) => (
-                <Button
-                  key={value}
-                  type="button"
-                  size="sm"
-                  variant={statusFilter === value ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter(value)}
-                  className="capitalize"
-                >
-                  {label}
-                </Button>
-              ))}
-            </ButtonGroup>
-          </div>
-
-          <div className="flex items-center gap-2 md:ml-auto">
-            <Input
-              placeholder="Search ..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-56"
-            />
-            <Link href="/leaves/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Leave Request
-              </Button>
-            </Link>
-          </div>
+        {/* Right: Search Input */}
+        <div className="flex items-center">
+          <Input
+            placeholder="Search ..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full lg:w-64 xl:w-80"
+          />
         </div>
       </div>
+
       <LeaveDayTable data={filtered} />
     </div>
   )

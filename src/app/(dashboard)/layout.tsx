@@ -32,7 +32,7 @@ export default async function DashboardLayout(props: { children: React.ReactNode
         <SidebarProvider
           style={
             {
-              '--sidebar-width': 'calc(var(--spacing) * 72)',
+              '--sidebar-width': 'calc(var(--spacing) * 68)',
               '--header-height': 'calc(var(--spacing) * 20)',
             } as React.CSSProperties
           }

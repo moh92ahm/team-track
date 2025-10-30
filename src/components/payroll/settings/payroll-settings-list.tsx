@@ -84,26 +84,57 @@ export function PayrollSettingsList({ data }: PayrollSettingsListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex gap-4 sm:items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold">Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage employee payroll configurations</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/payroll/settings/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Payroll Setting
-            </Button>
-          </Link>
-        </div>
+        <Link href="/payroll/settings/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            New Setting
+          </Button>
+        </Link>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        {/* Employee Filter */}
-        <div className="flex items-center gap-2">
+      {/* Filters & Search - Responsive Grid Layout */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] xl:grid-cols-[auto_auto]">
+        {/* Left: All Filters (Employee + Status + Type) */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+          {/* Status Filter */}
+          <ButtonGroup className="w-full sm:w-auto overflow-x-auto">
+            <Button
+              type="button"
+              size="sm"
+              variant={statusFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('all')}
+              className="flex-1"
+            >
+              All
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={statusFilter === 'active' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('active')}
+              className="flex-1"
+            >
+              Active
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={statusFilter === 'inactive' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('inactive')}
+              className="flex-1"
+            >
+              Inactive
+            </Button>
+          </ButtonGroup>
+
+          {/* Employee Filter */}
           <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="All Employees" />
             </SelectTrigger>
             <SelectContent>
@@ -115,46 +146,15 @@ export function PayrollSettingsList({ data }: PayrollSettingsListProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-2">
-          <ButtonGroup>
-            <Button
-              type="button"
-              size="sm"
-              variant={statusFilter === 'all' ? 'default' : 'outline'}
-              onClick={() => setStatusFilter('all')}
-            >
-              All
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={statusFilter === 'active' ? 'default' : 'outline'}
-              onClick={() => setStatusFilter('active')}
-            >
-              Active
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={statusFilter === 'inactive' ? 'default' : 'outline'}
-              onClick={() => setStatusFilter('inactive')}
-            >
-              Inactive
-            </Button>
-          </ButtonGroup>
-        </div>
-
-        {/* Type Filter */}
-        <div className="flex flex-col gap-2">
-          <ButtonGroup className="hidden lg:flex">
+          {/* Type Filter */}
+          <ButtonGroup className="overflow-x-auto hidden lg:flex">
             <Button
               type="button"
               size="sm"
               variant={typeFilter === 'all' ? 'default' : 'outline'}
               onClick={() => setTypeFilter('all')}
+              className="flex-shrink-0"
             >
               All Types
             </Button>
@@ -174,7 +174,7 @@ export function PayrollSettingsList({ data }: PayrollSettingsListProps) {
                 size="sm"
                 variant={typeFilter === value ? 'default' : 'outline'}
                 onClick={() => setTypeFilter(value)}
-                className="capitalize"
+                className="capitalize flex-shrink-0"
               >
                 {label}
               </Button>
@@ -182,12 +182,13 @@ export function PayrollSettingsList({ data }: PayrollSettingsListProps) {
           </ButtonGroup>
         </div>
 
-        <div className="flex items-center gap-2 md:ml-auto">
+        {/* Right: Search Input */}
+        <div className="flex">
           <Input
             placeholder="Search employee or description..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-64"
+            className="w-full lg:w-64 xl:w-80"
           />
         </div>
       </div>

@@ -156,7 +156,7 @@ export function PayrollForm({
                   searchable={true}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <SelectField
                     control={control}
                     name={'month'}
@@ -167,13 +167,13 @@ export function PayrollForm({
                   />
 
                   <div>
-                    <label htmlFor="year" className="px-1 text-sm font-medium text-foreground">
+                    <label htmlFor="year" className="text-sm font-medium text-foreground">
                       Year *
                     </label>
                     <input
                       id="year"
                       type="number"
-                      className="mt-2 w-full rounded-md border bg-background p-2"
+                      className="w-full rounded-md border bg-background p-2"
                       {...register('year', { valueAsNumber: true })}
                     />
                     {errors.year && (

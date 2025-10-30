@@ -84,19 +84,35 @@ export function UserList({ data }: UserListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-semibold">Team Members</h1>
-          <div className="text-sm text-muted-foreground">
-            {data.length} total · {filtered.length} shown
+      {/* Header Section */}
+      <div className="flex flex-col gap-4">
+        <div className="flex sm:flex-row justify-between sm:items-center gap-3">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-semibold">Team Members</h1>
+            <div className="text-sm text-muted-foreground">
+              {data.length} total · {filtered.length} shown
+            </div>
+          </div>
+
+          <div className="sm:block">
+            <Link href="/users/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New User
+              </Button>
+            </Link>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <ButtonGroup className="hidden sm:flex mr-2">
+
+        {/* Filters and Search Row */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+          {/* Status Filter Buttons */}
+          <ButtonGroup className="w-full sm:w-auto">
             <Button
               variant={statusFilter === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter('all')}
+              className="flex-1 sm:flex-none"
             >
               All
             </Button>
@@ -104,6 +120,7 @@ export function UserList({ data }: UserListProps) {
               variant={statusFilter === 'active' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter('active')}
+              className="flex-1 sm:flex-none"
             >
               Active
             </Button>
@@ -111,75 +128,74 @@ export function UserList({ data }: UserListProps) {
               variant={statusFilter === 'inactive' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter('inactive')}
+              className="flex-1 sm:flex-none"
             >
               Inactive
             </Button>
           </ButtonGroup>
 
-          {/* Employment Type Filter */}
-          <Popover open={employmentFilterOpen} onOpenChange={setEmploymentFilterOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={employmentTypeFilter.length > 0 ? 'border-primary' : ''}
-              >
-                <Filter className="h-4 w-4" />
-                {employmentTypeFilter.length > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {employmentTypeFilter.length}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56" align="end">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-sm">Employment Type</h4>
-                  {employmentTypeFilter.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearEmploymentTypeFilter}
-                      className="h-auto p-1"
-                    >
-                      Clear
-                    </Button>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  {employmentTypes.map((type) => (
-                    <div key={type.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`employment-${type.value}`}
-                        checked={employmentTypeFilter.includes(type.value)}
-                        onCheckedChange={() => handleEmploymentTypeToggle(type.value)}
-                      />
-                      <label
-                        htmlFor={`employment-${type.value}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {type.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          {/* Search and Filter Group */}
+          <div className="flex gap-2">
+            {/* Search Input */}
+            <Input
+              placeholder="Search users..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="flex"
+            />
 
-          <Input
-            placeholder="Search users..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-56"
-          />
-          <Link href="/users/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New User
-            </Button>
-          </Link>
+            {/* Employment Type Filter */}
+            <Popover open={employmentFilterOpen} onOpenChange={setEmploymentFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={employmentTypeFilter.length > 0 ? 'border-primary' : ''}
+                >
+                  <Filter className="h-4 w-4" />
+                  {employmentTypeFilter.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {employmentTypeFilter.length}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56" align="end">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Employment Type</h4>
+                    {employmentTypeFilter.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearEmploymentTypeFilter}
+                        className="h-auto p-1"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {employmentTypes.map((type) => (
+                      <div key={type.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`employment-${type.value}`}
+                          checked={employmentTypeFilter.includes(type.value)}
+                          onCheckedChange={() => handleEmploymentTypeToggle(type.value)}
+                        />
+                        <label
+                          htmlFor={`employment-${type.value}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {type.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
 

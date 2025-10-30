@@ -79,10 +79,11 @@ export function DataTable<T extends { id: string | number }>({
       </div>
 
       {enablePagination && (
-        <div className="flex items-center justify-between px-4 py-3 mt-3">
+        <div className="flex flex-row items-center justify-between gap-4 px-4 py-3 mt-3">
+          {/* Left side: Rows per page + Showing text */}
           <div className="flex items-center gap-6">
             <div className="hidden items-center gap-2 lg:flex">
-              <span className="text-sm text-muted-foreground">Rows per page</span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</span>
               <Select
                 value={`${pageSize}`}
                 onValueChange={(value) => {
@@ -102,16 +103,18 @@ export function DataTable<T extends { id: string | number }>({
                 </SelectContent>
               </Select>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground whitespace-nowrap">
               Showing {Math.min(end, data.length)} of {data.length} item
               {data.length !== 1 ? 's' : ''}
             </div>
           </div>
-          <div className="flex w-full items-center gap-4 lg:w-fit">
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
+
+          {/* Right side: Page info + Navigation buttons */}
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-medium whitespace-nowrap">
               Page {safePageIndex + 1} of {pageCount}
             </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex"

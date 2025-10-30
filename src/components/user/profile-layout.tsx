@@ -46,8 +46,8 @@ export function ProfileLayout({
       <div className="container mx-auto p-6 space-y-6">
         <SetBreadcrumbLabel label={displayName} />
         {/* Header with navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col md:flex-row justify-between space-y-2">
+          <div className="flex justify-between space-x-4">
             <Link href="/users">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -56,7 +56,7 @@ export function ProfileLayout({
             </Link>
             <h1 className="text-2xl font-bold">User Profile</h1>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-end gap-3 space-x-4">
             <UserStatusToggle user={user} onStatusChange={handleStatusChange} />
             <Link href={`/users/${user.id}/edit`}>
               <Button variant="outline">
