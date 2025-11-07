@@ -145,7 +145,7 @@ export const Users: CollectionConfig = {
       type: 'text',
     },
     {
-      name: 'identificationNumber',
+      name: 'identityNumber',
       type: 'text',
     },
     {

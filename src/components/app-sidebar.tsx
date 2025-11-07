@@ -8,6 +8,7 @@ import {
   IconSettings,
   IconUsers,
   IconCreditCard,
+  IconCalendar,
 } from '@tabler/icons-react'
 
 import { NavMain } from '@/components/nav-main'
@@ -36,6 +37,11 @@ const data = {
       title: 'Team Members',
       url: '/users',
       icon: IconUsers,
+    },
+    {
+      title: 'Calendar',
+      url: '/calendar',
+      icon: IconCalendar,
     },
     {
       title: 'Inventory',

@@ -22,6 +22,7 @@ import { JoinedDatePicker } from '@/components/date-pickers/joined-date-picker'
 import { WorkPermitExpiryPicker } from '@/components/date-pickers/work-permit-expiry-picker'
 import { MultiFileUpload } from '@/components/ui/multi-file-upload'
 import { formatDateForInput } from '@/lib/date-utils'
+import { COUNTRIES } from '@/lib/countries'
 
 interface UserFormProps {
   initialData?: Partial<User>
@@ -71,7 +72,7 @@ export function UserForm({
     secondaryEmail: initialData?.secondaryEmail || '',
     employmentType: initialData?.employmentType || 'other',
     nationality: initialData?.nationality || '',
-    identificationNumber: initialData?.identificationNumber || '',
+    identityNumber: initialData?.identityNumber || '',
     workPermitExpiry: initialData?.workPermitExpiry
       ? formatDateForInput(initialData.workPermitExpiry)
       : undefined,
@@ -291,12 +292,15 @@ export function UserForm({
               {/* Employment Status */}
               <CardTitle className="text-lg font-semibold">Employment Status</CardTitle>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField label="Nationality" name={'nationality'} register={register} />
-                <InputField
-                  label="Identification Number"
-                  name={'identificationNumber'}
-                  register={register}
+                <SelectField
+                  control={control}
+                  name={'nationality'}
+                  label="Nationality"
+                  placeholder="Select nationality"
+                  options={COUNTRIES}
+                  searchable={true}
                 />
+                <InputField label="Identity Number" name={'identityNumber'} register={register} />
 
                 <SelectField
                   control={control}
