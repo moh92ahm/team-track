@@ -10,7 +10,7 @@ export const UserFormSchema = z
     photo: z
       .custom<File | string | null>((v) => v === null || v instanceof File || typeof v === 'string')
       .optional(),
-    departments: z.array(z.string()).min(1, 'At least one department is required').default([]),
+    departments: z.array(z.string()).default([]).optional(),
     role: z.string().optional(),
     jobTitle: z.string().optional().default(''),
     birthDate: z
@@ -35,7 +35,7 @@ export const UserFormSchema = z
       .enum(['citizen', 'workPermit', 'residencePermit', 'other'] as const)
       .default('other'),
     nationality: z.string().optional().default(''),
-    identificationNumber: z.string().optional().default(''),
+    identityNumber: z.string().optional().default(''),
     workPermitExpiry: z.string().optional(),
     address: z.string().optional().default('Write the address here...'),
     // Employment fields
