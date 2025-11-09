@@ -91,7 +91,7 @@ async function seedMarvelCharacters(payload: Payload, departments: any[], roles:
       birthDate: '1992-05-15',
       primaryPhone: '+1-555-MOHAMMAD',
       secondaryPhone: '',
-      employmentType: 'citizen',
+      employmentType: 'other',
       nationality: 'Iranian',
       identificationNumber: 'IR-ADMIN-001',
       address: 'Admin Office, Tehran',
