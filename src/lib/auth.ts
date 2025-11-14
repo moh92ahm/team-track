@@ -10,17 +10,14 @@ export async function getCurrentUser() {
   try {
     // Use internal URL on server-side
     const baseUrl = 'http://localhost:3000'
-    
-    const res = await fetch(
-      `${baseUrl}/api/users/me`,
-      {
-        headers: {
-          Authorization: `JWT ${token}`,
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
+
+    const res = await fetch(`${baseUrl}/api/users/me`, {
+      headers: {
+        Authorization: `JWT ${token}`,
+        'Content-Type': 'application/json',
       },
-    )
+      cache: 'no-store',
+    })
 
     if (!res.ok) {
       // Token is invalid, clear it
@@ -43,18 +40,15 @@ export async function logout() {
     if (token) {
       // Use internal URL on server-side
       const baseUrl = 'http://localhost:3000'
-      
+
       // Call Payload logout endpoint
-      await fetch(
-        `${baseUrl}/api/users/logout`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `JWT ${token}`,
-            'Content-Type': 'application/json',
-          },
+      await fetch(`${baseUrl}/api/users/logout`, {
+        method: 'POST',
+        headers: {
+          Authorization: `JWT ${token}`,
+          'Content-Type': 'application/json',
         },
-      )
+      })
     }
   } catch (error) {
     console.error('Error during logout:', error)
