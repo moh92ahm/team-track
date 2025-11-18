@@ -30,9 +30,9 @@ export default async function CalendarPage() {
     <Tabs defaultValue="outline">
       <TabsContent
         value="outline"
-        className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
+        className="relative flex flex-col overflow-auto px-4 lg:px-6"
       >
-        <div className="space-y-2 p-4 lg:p-6">
+        <div className="p-4 lg:p-6">
           <h1 className="text-xl font-semibold">Calendar</h1>
           <p className="text-sm text-muted-foreground">View upcoming events</p> 
         </div>

@@ -46,7 +46,7 @@ export default function EventCalendar({ events }: EventCalendarProps) {
 
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent>
         <FullCalendar
           plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
           initialView="dayGridMonth"
