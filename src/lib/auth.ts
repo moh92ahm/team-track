@@ -8,16 +8,16 @@ export async function getCurrentUser() {
   if (!token) return null
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_PAYLOAD_URL || process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/users/me`,
-      {
-        headers: {
-          Authorization: `JWT ${token}`,
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
+    // Use internal URL on server-side
+    const baseUrl = 'http://localhost:3000'
+
+    const res = await fetch(`${baseUrl}/api/users/me`, {
+      headers: {
+        Authorization: `JWT ${token}`,
+        'Content-Type': 'application/json',
       },
-    )
+      cache: 'no-store',
+    })
 
     if (!res.ok) {
       // Token is invalid, clear it
@@ -38,17 +38,17 @@ export async function logout() {
     const token = (await cookies()).get('payload-token')?.value
 
     if (token) {
+      // Use internal URL on server-side
+      const baseUrl = 'http://localhost:3000'
+
       // Call Payload logout endpoint
-      await fetch(
-        `${process.env.NEXT_PUBLIC_PAYLOAD_URL || process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/users/logout`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `JWT ${token}`,
-            'Content-Type': 'application/json',
-          },
+      await fetch(`${baseUrl}/api/users/logout`, {
+        method: 'POST',
+        headers: {
+          Authorization: `JWT ${token}`,
+          'Content-Type': 'application/json',
         },
-      )
+      })
     }
   } catch (error) {
     console.error('Error during logout:', error)

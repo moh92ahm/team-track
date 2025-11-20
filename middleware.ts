@@ -40,10 +40,11 @@ export async function middleware(req: NextRequest) {
   let user: any
 
   try {
+    // Use internal URL when running on server, external URL only for client-side
     const baseUrl =
-      process.env.NEXT_PUBLIC_PAYLOAD_URL ||
-      process.env.PAYLOAD_PUBLIC_SERVER_URL ||
-      'http://localhost:3000'
+      typeof window === 'undefined'
+        ? 'http://localhost:3000' // Server-side: use internal localhost
+        : process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000' // Client-side: use public URL
 
     const verifyResponse = await fetch(`${baseUrl}/api/users/me?depth=2`, {
       headers: {
