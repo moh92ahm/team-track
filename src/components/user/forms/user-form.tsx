@@ -126,6 +126,7 @@ export function UserForm({
 
   const formRef = React.useRef<HTMLFormElement>(null)
   const [nativeSubmitting, setNativeSubmitting] = React.useState(false)
+  const [validationPassed, setValidationPassed] = React.useState(false)
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,11 +151,18 @@ export function UserForm({
           action={formAction as any}
           onSubmit={async (e) => {
             if (!formAction) return
-            // For server-action mode, do client-side checks first
-            if (mode === 'create') {
+
+            // For server-action mode, do client-side validation first
+            if (mode === 'create' && !validationPassed) {
               e.preventDefault()
+              console.log('Running validation...')
+
               const ok = await trigger()
-              if (!ok) return
+              if (!ok) {
+                console.log('Validation failed:', errors)
+                return
+              }
+
               // Enforce password presence and match on create
               const pwd = (watch('password') as string) || ''
               const cpwd = (watch('confirmPassword') as string) || ''
@@ -170,12 +178,22 @@ export function UserForm({
                 alert('Passwords do not match')
                 return
               }
+
+              console.log('Validation passed, submitting...')
+              setValidationPassed(true)
               setNativeSubmitting(true)
-              // Use native submit to invoke the server action
-              formRef.current?.submit()
+
+              // Now trigger the actual submission
+              setTimeout(() => {
+                formRef.current?.requestSubmit()
+              }, 0)
               return
             }
-            // In edit mode, allow native submission without blocking
+
+            // If validation already passed or in edit mode, let it submit
+            if (mode === 'create') {
+              setNativeSubmitting(true)
+            }
           }}
           className="space-y-6"
         >
