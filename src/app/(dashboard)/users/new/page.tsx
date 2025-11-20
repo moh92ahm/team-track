@@ -88,7 +88,7 @@ export default async function NewUserPage() {
       joinedAt: String(formData.get('joinedAt') || new Date().toISOString()),
       employmentType: String(formData.get('employmentType') || 'other'),
       nationality: String(formData.get('nationality') || ''),
-      identificationNumber: String(formData.get('identificationNumber') || ''),
+      identityNumber: String(formData.get('identityNumber') || ''),
       address: String(formData.get('address') || ''),
       username,
       password,
