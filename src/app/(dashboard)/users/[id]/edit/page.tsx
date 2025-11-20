@@ -98,7 +98,7 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
         joinedAt: String(formData.get('joinedAt') || ''),
         employmentType: String(formData.get('employmentType') || 'other'),
         nationality: String(formData.get('nationality') || ''),
-        identificationNumber: String(formData.get('identificationNumber') || ''),
+        identityNumber: String(formData.get('identityNumber') || ''),
         address: String(formData.get('address') || ''),
       }
 

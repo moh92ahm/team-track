@@ -29,7 +29,7 @@ export function EmploymentStatusCard({ user }: EmploymentStatusCardProps) {
         <div>
           <div className="font-medium">Identification No.</div>
           <div className="text-muted-foreground">
-            {user.identificationNumber || 'Not specified'}
+            {user.identityNumber || 'Not specified'}
           </div>
         </div>
         <div>
