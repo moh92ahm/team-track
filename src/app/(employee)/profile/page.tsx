@@ -76,9 +76,15 @@ export default async function EmployeeProfilePage() {
     sort: '-period.year',
   })
 
-  // Fetch payroll settings
+  // Fetch user's payroll settings only
   const { docs: payrollSettings } = await payload.find({
     collection: 'payroll-settings',
+    where: {
+      employee: {
+        equals: user.id,
+      },
+    },
+    depth: 1,
     limit: 100,
   })
 

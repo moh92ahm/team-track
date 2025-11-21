@@ -22,6 +22,7 @@ import { JoinedDatePicker } from '@/components/date-pickers/joined-date-picker'
 import { WorkPermitExpiryPicker } from '@/components/date-pickers/work-permit-expiry-picker'
 import { MultiFileUpload } from '@/components/ui/multi-file-upload'
 import { formatDateForInput } from '@/lib/date-utils'
+import { COUNTRIES } from '@/lib/countries'
 
 interface UserFormProps {
   initialData?: Partial<User>
@@ -71,7 +72,7 @@ export function UserForm({
     secondaryEmail: initialData?.secondaryEmail || '',
     employmentType: initialData?.employmentType || 'other',
     nationality: initialData?.nationality || '',
-    identificationNumber: initialData?.identificationNumber || '',
+    identityNumber: initialData?.identityNumber || '',
     workPermitExpiry: initialData?.workPermitExpiry
       ? formatDateForInput(initialData.workPermitExpiry)
       : undefined,
@@ -125,6 +126,7 @@ export function UserForm({
 
   const formRef = React.useRef<HTMLFormElement>(null)
   const [nativeSubmitting, setNativeSubmitting] = React.useState(false)
+  const [validationPassed, setValidationPassed] = React.useState(false)
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,11 +151,18 @@ export function UserForm({
           action={formAction as any}
           onSubmit={async (e) => {
             if (!formAction) return
-            // For server-action mode, do client-side checks first
-            if (mode === 'create') {
+
+            // For server-action mode, do client-side validation first
+            if (mode === 'create' && !validationPassed) {
               e.preventDefault()
+              console.log('Running validation...')
+
               const ok = await trigger()
-              if (!ok) return
+              if (!ok) {
+                console.log('Validation failed:', errors)
+                return
+              }
+
               // Enforce password presence and match on create
               const pwd = (watch('password') as string) || ''
               const cpwd = (watch('confirmPassword') as string) || ''
@@ -169,12 +178,22 @@ export function UserForm({
                 alert('Passwords do not match')
                 return
               }
+
+              console.log('Validation passed, submitting...')
+              setValidationPassed(true)
               setNativeSubmitting(true)
-              // Use native submit to invoke the server action
-              formRef.current?.submit()
+
+              // Now trigger the actual submission
+              setTimeout(() => {
+                formRef.current?.requestSubmit()
+              }, 0)
               return
             }
-            // In edit mode, allow native submission without blocking
+
+            // If validation already passed or in edit mode, let it submit
+            if (mode === 'create') {
+              setNativeSubmitting(true)
+            }
           }}
           className="space-y-6"
         >
@@ -291,12 +310,15 @@ export function UserForm({
               {/* Employment Status */}
               <CardTitle className="text-lg font-semibold">Employment Status</CardTitle>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField label="Nationality" name={'nationality'} register={register} />
-                <InputField
-                  label="Identification Number"
-                  name={'identificationNumber'}
-                  register={register}
+                <SelectField
+                  control={control}
+                  name={'nationality'}
+                  label="Nationality"
+                  placeholder="Select nationality"
+                  options={COUNTRIES}
+                  searchable={true}
                 />
+                <InputField label="Identity Number" name={'identityNumber'} register={register} />
 
                 <SelectField
                   control={control}

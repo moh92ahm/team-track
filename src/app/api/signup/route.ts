@@ -35,10 +35,10 @@ export async function POST(req: Request) {
         birthDate: data.birthDate,
         joinedAt: data.joinedAt,
         nationality: data.nationality || undefined,
-        identificationNumber: data.identificationNumber || undefined,
+        identityNumber: data.identityNumber || undefined,
         address: data.address || undefined,
         role: employeeRole.docs[0].id,
-        employmentType: 'other', // Default employment type
+        employmentType: 'other',
         isActive: true,
       },
     })

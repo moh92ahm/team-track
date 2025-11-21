@@ -12,6 +12,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { COUNTRIES } from '@/lib/countries'
+import { SelectField } from '@/components/form/select-field'
 
 // Simplified schema for public signup
 const signupSchema = z
@@ -25,7 +27,7 @@ const signupSchema = z
     birthDate: z.string().min(1, 'Birth date is required'),
     joinedAt: z.string().min(1, 'Joined date is required'),
     nationality: z.string().optional(),
-    identificationNumber: z.string().optional(),
+    identityNumber: z.string().optional(),
     address: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -56,7 +58,7 @@ export function UserSignupForm() {
       birthDate: '',
       joinedAt: '',
       nationality: '',
-      identificationNumber: '',
+      identityNumber: '',
       address: '',
     },
   })
@@ -183,11 +185,18 @@ export function UserSignupForm() {
         <CardContent className="pt-6 space-y-4">
           <h3 className="text-lg font-medium">Additional Information</h3>
 
-          <InputField label="Nationality" name="nationality" register={register} />
+          <SelectField
+            control={control}
+            name={'nationality'}
+            label="Nationality"
+            placeholder="Select nationality"
+            options={COUNTRIES}
+            searchable={true}
+          />
 
           <InputField
-            label="Identification Number"
-            name="identificationNumber"
+            label="Identity Number"
+            name="identityNumber"
             register={register}
           />
 

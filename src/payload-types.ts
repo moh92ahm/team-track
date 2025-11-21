@@ -169,7 +169,7 @@ export interface User {
   secondaryEmail?: string | null;
   employmentType: 'citizen' | 'workPermit' | 'residencePermit' | 'other';
   nationality?: string | null;
-  identificationNumber?: string | null;
+  identityNumber?: string | null;
   workPermitExpiry?: string | null;
   address?: string | null;
   documents?: (number | Media)[] | null;
@@ -579,7 +579,7 @@ export interface UsersSelect<T extends boolean = true> {
   secondaryEmail?: T;
   employmentType?: T;
   nationality?: T;
-  identificationNumber?: T;
+  identityNumber?: T;
   workPermitExpiry?: T;
   address?: T;
   documents?: T;

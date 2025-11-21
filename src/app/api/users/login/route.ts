@@ -18,9 +18,7 @@ export async function POST(request: Request) {
     const payload = await getPayload({ config: configPromise })
 
     // Attempt to login using Payload's login method
-    const loginData = email
-      ? { email, password }
-      : { username: username!, password }
+    const loginData = email ? { email, password } : { username: username!, password }
 
     const result = await payload.login({
       collection: 'users',
@@ -50,9 +48,6 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Login error:', error)
-    return NextResponse.json(
-      { message: error.message || 'Login failed' },
-      { status: 401 },
-    )
+    return NextResponse.json({ message: error.message || 'Login failed' }, { status: 401 })
   }
 }
